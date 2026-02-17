@@ -33,6 +33,7 @@ public class JavaFeatureColorView extends BorderPane implements AssociationInfoA
         associationListeners = new HashMap<>();
         listView = new ListView<>(codeLines);
         listView.setFocusTraversable(false);
+        this.setCenter(listView);
         listView.setCellFactory(new Callback<ListView<CodeLine>, ListCell<CodeLine>>() {
             @Override
             public ListCell<CodeLine> call(ListView<CodeLine> param) {
@@ -65,7 +66,7 @@ public class JavaFeatureColorView extends BorderPane implements AssociationInfoA
 
     /*
         note : nodes for java are made up of one class and the rest as simple line by line as child nodes
-        although by using V1 and V2 as commits there seems to be a line missing in the example 
+        although by using V1 and V2 as commits there seems to be a line missing in the example
      */
 
     @Override
@@ -117,7 +118,6 @@ public class JavaFeatureColorView extends BorderPane implements AssociationInfoA
             ai.addPropertyChangeListener(pcl);
             associationListeners.put(ai.getAssociation().getId(), pcl);
         }
-
         listView.refresh();
     }
 
