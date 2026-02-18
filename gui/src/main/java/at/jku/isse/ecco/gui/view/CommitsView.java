@@ -27,7 +27,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 public class CommitsView extends BorderPane implements EccoListener {
 
@@ -91,7 +93,7 @@ public class CommitsView extends BorderPane implements EccoListener {
 		commitsTable.getColumns().setAll(commitsCol);
 
 		idCol.setCellValueFactory((TableColumn.CellDataFeatures<CommitInfo, String> param) -> new ReadOnlyObjectWrapper<>(param.getValue().getCommit().getId()));
-		commitMessage.setCellValueFactory((TableColumn.CellDataFeatures<CommitInfo, String> param) -> new ReadOnlyObjectWrapper<>(param.getValue().getCommit().getCommitMassage()));
+		commitMessage.setCellValueFactory((TableColumn.CellDataFeatures<CommitInfo, String> param) -> new ReadOnlyObjectWrapper<>(param.getValue().getCommit().getCommitMessage()));
 		commiter.setCellValueFactory((TableColumn.CellDataFeatures<CommitInfo, String> param) -> new ReadOnlyObjectWrapper<>(param.getValue().getCommit().getUsername()));
 		date.setCellValueFactory((TableColumn.CellDataFeatures<CommitInfo, String> param) -> new ReadOnlyObjectWrapper<>(param.getValue().getCommit().getDate() == null ? "" : param.getValue().getCommit().getDate().toString()));  //TODO do better
 

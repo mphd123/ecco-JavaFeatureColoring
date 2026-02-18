@@ -3,6 +3,7 @@ package at.jku.isse.ecco.repository;
 import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.EccoUtil;
 import at.jku.isse.ecco.artifact.Artifact;
+import at.jku.isse.ecco.composition.CheckoutComposer;
 import at.jku.isse.ecco.composition.LazyCompositionRootNode;
 import at.jku.isse.ecco.core.*;
 import at.jku.isse.ecco.counter.ModuleCounter;
@@ -12,6 +13,9 @@ import at.jku.isse.ecco.dao.Persistable;
 import at.jku.isse.ecco.feature.Configuration;
 import at.jku.isse.ecco.feature.Feature;
 import at.jku.isse.ecco.feature.FeatureRevision;
+import at.jku.isse.ecco.featuretrace.FeatureTrace;
+import at.jku.isse.ecco.featuretrace.evaluation.EvaluationStrategy;
+import at.jku.isse.ecco.maintree.building.MainTreeBuildingStrategy;
 import at.jku.isse.ecco.module.Condition;
 import at.jku.isse.ecco.module.EmptyModule;
 import at.jku.isse.ecco.module.Module;
@@ -21,7 +25,6 @@ import at.jku.isse.ecco.tree.Node;
 import at.jku.isse.ecco.tree.RootNode;
 import at.jku.isse.ecco.util.Trees;
 
-import java.io.ObjectInputFilter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,32 +35,41 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Public repository interface. A repository contains {@link at.jku.isse.ecco.feature.Feature}s and {@link at.jku.isse.ecco.core.Association}s.
  */
 public interface Repository extends Persistable {
+	String MERGE = "merge";
 
-	public Collection<? extends Feature> getFeatures();
+	Collection<? extends Feature> getFeatures();
 
-	public Collection<? extends Association> getAssociations();
+	Collection<? extends Association> getAssociations();
 
-	public ArrayList<Variant> getVariants();
+	ArrayList<Variant> getVariants();
 
-	public Variant getVariant(Configuration configuration);
+	Variant getVariant(Configuration configuration);
 
-	public Variant getVariant(String id);
+	Variant getVariant(String id);
 
-	public Association getAssociation(String id);
+	Association getAssociation(String id);
 
-	public ArrayList<Feature> getFeature();
+	ArrayList<Feature> getFeature();
 
-	public void addVariant(Variant variant);
+	void addVariant(Variant variant);
 
-	public void removeVariant(Variant variant);
+	void removeVariant(Variant variant);
 
-	public void updateVariant(Variant variant, Configuration configuration, String name);
+	void updateVariant(Variant variant, Configuration configuration, String name);
 
-	public void setCommits(Collection<Commit> commits);
+	Collection<Commit> getCommits();
 
-	public Collection<Commit> getCommits();
+	void setCommits(Collection<Commit> commits);
 
-	public void addCommit(Commit commit);
+	void addCommit(Commit commit);
+
+	Collection<FeatureTrace> getFeatureTraces();
+
+	void setMaintreeBuildingStrategy(MainTreeBuildingStrategy mainTreeBuildingStrategy);
+	MainTreeBuildingStrategy getMainTreeBuildingStrategy();
+
+	void setEvaluationStrategy(EvaluationStrategy evaluationStrategy);
+	EvaluationStrategy getEvaluationStrategy();
 
 	/**
 	 * Private repository interface.
@@ -65,10 +77,10 @@ public interface Repository extends Persistable {
 	interface Op extends Repository {
 
 		@Override
-		public Collection<? extends Feature> getFeatures();
+		Collection<? extends Feature> getFeatures();
 
 		@Override
-		public Collection<? extends Association.Op> getAssociations();
+		Collection<? extends Association.Op> getAssociations();
 
 		/**
 		 * Returns an unmodifiable collection of modules in the repository.
@@ -83,10 +95,7 @@ public interface Repository extends Persistable {
 		 * @param order The order of retrieved modules
 		 * @return The collection of modules.
 		 */
-		public Collection<? extends Module> getModules(int order);
-
-
-		// TODO: document these! make clear where a check is performed for "already existing" or "null" etc.
+		Collection<? extends Module> getModules(int order);
 
 		/**
 		 * Retrieves the feature stored in this repository with the given id. If no such feature exists in this repository, null is returned.
@@ -94,28 +103,58 @@ public interface Repository extends Persistable {
 		 * @param id The id of the feature.
 		 * @return The feature with the given id, or null if there is no such feature.
 		 */
-		public Feature getFeature(String id);
+		Feature getFeature(String id);
 
-		public Feature getOrphanedFeature(String id, String name);
+		Feature getOrphanedFeature(String id, String name);
 
-		public Feature addFeature(String id, String name);
+		Feature addFeature(String id, String name);
 
-		public void addVariant(Variant variant);
+		void addVariant(Variant variant);
 
-		public void addAssociation(Association.Op association);
+		void addAssociation(Association.Op association);
 
-		public void removeVariant(Variant variant);
+		void removeVariant(Variant variant);
 
-		public void removeAssociation(Association.Op association);
+		void removeAssociation(Association.Op association);
 
-		public Module getOrphanedModule(Feature[] posFeatures, Feature[] neg);
+		Module getOrphanedModule(Feature[] posFeatures, Feature[] neg);
 
-		public int getMaxOrder();
+		int getMaxOrder();
 
-		public void setMaxOrder(int maxOrder);
+		void setMaxOrder(int maxOrder);
 
-		public EntityFactory getEntityFactory();
+		EntityFactory getEntityFactory();
 
+		default void setRetroactiveConditions(){
+			this.getAssociations().forEach(Association.Op::setRetroactiveConditions);
+		}
+
+		void buildMainTree();
+
+		Node.Op getMainTree();
+
+		default Collection<FeatureRevision> addFeatureRevisions(FeatureRevision[] featureRevisions){
+			Collection<FeatureRevision> repoFeatureRevisions = new ArrayList<>();
+			for (FeatureRevision featureRevision : featureRevisions) {
+				Feature feature = featureRevision.getFeature();
+				// get/add feature from/to repository
+				Feature repoFeature = this.getFeature(feature.getId());
+				if (repoFeature == null) {
+					repoFeature = this.addFeature(feature.getId(), feature.getName());
+					repoFeature.setDescription(feature.getDescription());
+
+					this.addNegativeFeatureModules(repoFeature);
+				}
+				// get/add feature revision from/to repository
+				FeatureRevision repoFeatureRevision = repoFeature.getRevision(featureRevision.getId());
+				if (repoFeatureRevision == null) {
+					repoFeatureRevision = repoFeature.addRevision(featureRevision.getId());
+					repoFeatureRevision.setDescription(featureRevision.getDescription());
+				}
+				repoFeatureRevisions.add(repoFeatureRevision);
+			}
+			return repoFeatureRevisions;
+		}
 
 		/**
 		 * Retrieves the module instance with given positive and negative features from the repository.
@@ -124,7 +163,7 @@ public interface Repository extends Persistable {
 		 * @param neg Negative features of the module.
 		 * @return The module or null if it does not exist.
 		 */
-		public Module getModule(Feature[] pos, Feature[] neg);
+		Module getModule(Feature[] pos, Feature[] neg);
 
 		/**
 		 * Checks if the given module already exists and throws an exception if it does.
@@ -134,37 +173,7 @@ public interface Repository extends Persistable {
 		 * @param neg Negative features of the module.
 		 * @return The module instance that was added to the repository.
 		 */
-		public Module addModule(Feature[] pos, Feature[] neg);
-
-
-//		/**
-//		 * Checks if a module revision with given positive feature revisions and negative features is contained in the repository.
-//		 *
-//		 * @param pos
-//		 * @param neg
-//		 * @return
-//		 */
-//		public boolean containsModuleRevision(FeatureRevision[] pos, Feature[] neg);
-//
-//		/**
-//		 * Retrieves the module revision instance with given positive feature revisions and negative features from the repository.
-//		 *
-//		 * @param pos
-//		 * @param neg
-//		 * @return The module revision or null if it does not exist.
-//		 */
-//		public ModuleRevision getModuleRevision(FeatureRevision[] pos, Feature[] neg);
-//
-//		/**
-//		 * Checks if the given module revision already exists and throws an exception if it does.
-//		 * If such a module revision does not already exist it is created.
-//		 * If the corresponding module does not already exist it is created.
-//		 *
-//		 * @param pos
-//		 * @param neg
-//		 * @return The module instance that was added to the repository.
-//		 */
-//		public ModuleRevision addModuleRevision(FeatureRevision[] pos, Feature[] neg);
+		Module addModule(Feature[] pos, Feature[] neg);
 
 
 		/**
@@ -174,7 +183,7 @@ public interface Repository extends Persistable {
 		 * @param name The name of the feature(s)
 		 * @return The collection of features with the given name.
 		 */
-		public default Collection<Feature> getFeaturesByName(String name) {
+		default Collection<Feature> getFeaturesByName(String name) {
 			Collection<Feature> features = new ArrayList<>();
 			for (Feature feature : this.getFeatures()) {
 				if (feature.getName().equals(name))
@@ -189,7 +198,7 @@ public interface Repository extends Persistable {
 		 *
 		 * @param feature The new feature.
 		 */
-		public default void addNegativeFeatureModules(Feature feature) {
+		default void addNegativeFeatureModules(Feature feature) {
 			checkNotNull(feature);
 
 			// add new modules to the repository that contain the new feature negatively. copies every existing module and adds the new feature negatively.
@@ -234,30 +243,10 @@ public interface Repository extends Persistable {
 		 * @param configuration The configuration whose features are added to the repository.
 		 * @return Collection of all feature revision instances of the repository that are contained in the configuration.
 		 */
-		public default Collection<FeatureRevision> addConfigurationFeatures(Configuration configuration) {
+		default Collection<FeatureRevision> addConfigurationFeatures(Configuration configuration) {
 			checkNotNull(configuration);
-
 			// add new features and feature revisions from configuration to this repository
-			Collection<FeatureRevision> repoFeatureRevisions = new ArrayList<>();
-			for (FeatureRevision featureRevision : configuration.getFeatureRevisions()) {
-				Feature feature = featureRevision.getFeature();
-				// get/add feature from/to repository
-				Feature repoFeature = this.getFeature(feature.getId());
-				if (repoFeature == null) {
-					repoFeature = this.addFeature(feature.getId(), feature.getName());
-					repoFeature.setDescription(feature.getDescription());
-
-					this.addNegativeFeatureModules(repoFeature);
-				}
-				// get/add feature revision from/to repository
-				FeatureRevision repoFeatureRevision = repoFeature.getRevision(featureRevision.getId());
-				if (repoFeatureRevision == null) {
-					repoFeatureRevision = repoFeature.addRevision(featureRevision.getId());
-					repoFeatureRevision.setDescription(featureRevision.getDescription());
-				}
-				repoFeatureRevisions.add(repoFeatureRevision);
-			}
-			return repoFeatureRevisions;
+			return this.addFeatureRevisions(configuration.getFeatureRevisions());
 		}
 
 		/**
@@ -273,7 +262,7 @@ public interface Repository extends Persistable {
 		 * @param configuration The configuration whose modules are computed and added to the repository.
 		 * @return Collection of all module revision instances of the repository that are contained in the configuration.
 		 */
-		public default Collection<ModuleRevision> addConfigurationModules(Configuration configuration) {
+		default Collection<ModuleRevision> addConfigurationModules(Configuration configuration) {
 			checkNotNull(configuration);
 
 			// collect positive feature revisions
@@ -387,9 +376,10 @@ public interface Repository extends Persistable {
 		 *
 		 * @param configuration The configuration describing the given artifact tree.
 		 * @param nodes         The root node of the artifact tree representing the implementation of the given configuration.
+		 * @param committer     The Name of the user who committed.
 		 * @return The commit object.
 		 */
-		public default Commit extract(Configuration configuration, Set<Node.Op> nodes) {
+		default Commit extract(Configuration configuration, Set<Node.Op> nodes, String committer) {
 			checkNotNull(configuration);
 			checkNotNull(nodes);
 
@@ -426,8 +416,7 @@ public interface Repository extends Persistable {
 				association.addObservation(moduleRevision);
 			}
 
-			// create commit object
-			Commit commit = this.getEntityFactory().createCommit();
+			Commit commit = this.getEntityFactory().createCommit(committer);
 			commit.setConfiguration(repoConfiguration);
 			addCommit(commit);
 
@@ -442,7 +431,7 @@ public interface Repository extends Persistable {
 		 *
 		 * @param inputAs The collection of associations to be committed.
 		 */
-		public default void extract(Collection<? extends Association.Op> inputAs) {
+		default void extract(Collection<? extends Association.Op> inputAs) {
 			checkNotNull(inputAs);
 
 			for (Association.Op inputA : inputAs) {
@@ -455,9 +444,8 @@ public interface Repository extends Persistable {
 		 *
 		 * @param association The association to be committed.
 		 */
-		public default void extract(Association.Op association, Commit commit) {
+		default void extract(Association.Op association, Commit commit) {
 			checkNotNull(association);
-
 			Trees.checkConsistency(association.getRootNode());
 
 			Collection<? extends Association.Op> originalAssociations = this.getAssociations();
@@ -468,7 +456,7 @@ public interface Repository extends Persistable {
 			// slice new association with every original association
 			for (Association.Op origA : originalAssociations) {
 				// ASSOCIATION
-				// slice the associations. the order matters here! the "left" association's featuers and artifacts are maintained. the "right" association's features and artifacts are replaced by the "left" association's.
+				// slice the associations. the order matters here! the "left" association's features and artifacts are maintained. the "right" association's features and artifacts are replaced by the "left" association's.
 				Association.Op intA = this.getEntityFactory().createAssociation();
 				intA.setId(UUID.randomUUID().toString());
 
@@ -480,8 +468,8 @@ public interface Repository extends Persistable {
 				if (!intA.getRootNode().getChildren().isEmpty()) { // if the intersection association has artifacts store it
 					toAdd.add(intA);
 
-					commit.addAssociation(intA);		// add association to new commit
-					for (Commit c : getCommits()) {		// updates associations in previous commits
+					commit.addAssociation(intA);        // add association to new commit
+					for (Commit c : getCommits()) {        // updates associations in previous commits
 						if (c.containsAssociation(origA)) {
 							c.addAssociation(intA);
 						}
@@ -498,8 +486,8 @@ public interface Repository extends Persistable {
 				} else {
 					toRemove.add(origA);
 
-					commit.deleteAssociation(origA);			// delete association from new commit		//TODO can there even be any?
-					for (Commit c : getCommits()) {				// updates associations in previous commits
+					commit.deleteAssociation(origA);            // delete association from new commit
+					for (Commit c : getCommits()) {                // updates associations in previous commits
 						if (c.containsAssociation(origA)) {
 							c.deleteAssociation(origA);
 						}
@@ -631,11 +619,7 @@ public interface Repository extends Persistable {
 		 * @param configuration The configuration for which the implementing artifact tree shall be retrieved.
 		 * @return The checkout object.
 		 */
-		public default Checkout compose(Configuration configuration) {
-			return this.compose(configuration, true);
-		}
-
-		public default Checkout compose(Configuration configuration, boolean lazy) {
+		default Checkout compose(Configuration configuration) {
 			checkNotNull(configuration);
 
 			Set<Association.Op> selectedAssociations = new HashSet<>();
@@ -645,13 +629,12 @@ public interface Repository extends Persistable {
 				}
 			}
 
-			Checkout checkout = this.compose(selectedAssociations, lazy);
-			checkout.setConfiguration(configuration);
+			Node.Op mainTree = this.getMainTree();
+			CheckoutComposer composer = new CheckoutComposer(configuration, this.getEvaluationStrategy());
+			Checkout checkout = composer.composeCheckout(mainTree, selectedAssociations);
 
-			//Set<ModuleRevision> desiredModules = configuration.computeModules(this.repository.getMaxOrder());
 			Set<ModuleRevision> desiredModules = new HashSet<>(this.getOrphanedConfigurationModules(configuration));
 			Set<ModuleRevision> missingModules = new HashSet<>();
-			//Set<ModuleRevision> surplusModules = new HashSet<>();
 			Map<ModuleRevision,String> surplusModules = new HashMap<>();
 
 			// compute missing
@@ -693,7 +676,7 @@ public interface Repository extends Persistable {
 		}
 
 
-		public default Checkout compose(Collection<? extends Association.Op> selectedAssociations, boolean lazy) {
+		default Checkout compose(Collection<? extends Association.Op> selectedAssociations, boolean lazy) {
 			Node compRootNode;
 			Collection<Artifact<?>> orderWarnings;
 			if (lazy) {
@@ -704,7 +687,6 @@ public interface Repository extends Persistable {
 				}
 
 				orderWarnings = lazyCompRootNode.getOrderSelector().getUncertainOrders();
-
 				compRootNode = lazyCompRootNode;
 			} else {
 				// TODO: non-lazy composition and computation of order warnings!
@@ -735,7 +717,7 @@ public interface Repository extends Persistable {
 		 *
 		 * @param rootNode The root node of the artifact tree to be mapped.
 		 */
-		public default void map(RootNode.Op rootNode) {
+		default void map(RootNode.Op rootNode) {
 			Collection<? extends Association.Op> associations = this.getAssociations();
 			for (Association.Op association : associations) {
 				Trees.map(association.getRootNode(), rootNode);
@@ -753,7 +735,7 @@ public interface Repository extends Persistable {
 		 * @param entityFactory The entity factory used for creating the subset repository.
 		 * @return The subset repository.
 		 */
-		public default Repository.Op subset_old(Collection<FeatureRevision> deselected, int maxOrder, EntityFactory entityFactory) {
+		default Repository.Op subset_old(Collection<FeatureRevision> deselected, int maxOrder, EntityFactory entityFactory) {
 			checkNotNull(deselected);
 			checkArgument(maxOrder <= this.getMaxOrder());
 			checkNotNull(entityFactory);
@@ -846,16 +828,16 @@ public interface Repository extends Persistable {
 			// trim sequence graphs to only contain artifacts from the selected associations
 			for (Association.Op newAssociation : newAssociations) {
 				newAssociation.getRootNode().traverse((Node.Op node) -> {
-					if (node.getArtifact() != null && node.getArtifact().isOrdered() && node.getArtifact().isSequenced() && node.getArtifact().getSequenceGraph() != null) {
-						if (node.isUnique() && node.getArtifact() != null && node.getArtifact().getSequenceGraph() != null) {
+					if (node.getArtifact() != null && node.getArtifact().isOrdered() && node.getArtifact().isSequenced() && node.getArtifact().getPartialOrderGraph() != null) {
+						if (node.isUnique() && node.getArtifact() != null && node.getArtifact().getPartialOrderGraph() != null) {
 							// get all symbols from sequence graph
-							Collection<? extends Artifact.Op<?>> symbols = node.getArtifact().getSequenceGraph().collectNodes().stream().map(PartialOrderGraph.Node.Op::getArtifact).collect(Collectors.toList());
+							Collection<? extends Artifact.Op<?>> symbols = node.getArtifact().getPartialOrderGraph().collectNodes().stream().map(PartialOrderGraph.Node.Op::getArtifact).collect(Collectors.toList());
 
 							// remove symbols that are not contained in the given associations
 							symbols.removeIf(symbol -> !newAssociations.contains(symbol.getContainingNode().getContainingAssociation()));
 
 							// trim sequence graph
-							node.getArtifact().getSequenceGraph().trim(symbols);
+							node.getArtifact().getPartialOrderGraph().trim(symbols);
 						}
 					}
 				});
@@ -869,7 +851,7 @@ public interface Repository extends Persistable {
 			return newRepository;
 		}
 
-		public default Repository.Op subset(Collection<FeatureRevision> deselected, int maxOrder, EntityFactory entityFactory) {
+		default Repository.Op subset(Collection<FeatureRevision> deselected, int maxOrder, EntityFactory entityFactory) {
 			checkNotNull(deselected);
 			checkArgument(maxOrder <= this.getMaxOrder());
 			checkNotNull(entityFactory);
@@ -999,16 +981,16 @@ public interface Repository extends Persistable {
 			// trim sequence graphs to only contain artifacts from the selected associations
 			for (Association.Op newAssociation : newAssociations) {
 				newAssociation.getRootNode().traverse((Node.Op node) -> {
-					if (node.getArtifact() != null && node.getArtifact().isOrdered() && node.getArtifact().isSequenced() && node.getArtifact().getSequenceGraph() != null) {
-						if (node.isUnique() && node.getArtifact() != null && node.getArtifact().getSequenceGraph() != null) {
+					if (node.getArtifact() != null && node.getArtifact().isOrdered() && node.getArtifact().isSequenced() && node.getArtifact().getPartialOrderGraph() != null) {
+						if (node.isUnique() && node.getArtifact() != null && node.getArtifact().getPartialOrderGraph() != null) {
 							// get all symbols from sequence graph
-							Collection<? extends Artifact.Op<?>> symbols = node.getArtifact().getSequenceGraph().collectNodes().stream().map(PartialOrderGraph.Node.Op::getArtifact).collect(Collectors.toList());
+							Collection<? extends Artifact.Op<?>> symbols = node.getArtifact().getPartialOrderGraph().collectNodes().stream().map(PartialOrderGraph.Node.Op::getArtifact).collect(Collectors.toList());
 
 							// remove symbols that are not contained in the given associations
 							symbols.removeIf(symbol -> symbol != null && !newAssociations.contains(symbol.getContainingNode().getContainingAssociation()));
 
 							// trim sequence graph
-							node.getArtifact().getSequenceGraph().trim(symbols);
+							node.getArtifact().getPartialOrderGraph().trim(symbols);
 						}
 					}
 				});
@@ -1035,11 +1017,11 @@ public interface Repository extends Persistable {
 		 * @param entityFactory The entity factory used for creating the copy of this repository.
 		 * @return The copied repository.
 		 */
-		public default Repository.Op copy(EntityFactory entityFactory) {
+		default Repository.Op copy(EntityFactory entityFactory) {
 			return this.subset(new ArrayList<>(), this.getMaxOrder(), entityFactory);
 		}
 
-		public default void merge(Repository.Op otherRepository) {
+		default void merge(Repository.Op otherRepository) {
 			checkNotNull(otherRepository);
 
 			// extract every association. treat it as if it was an input product. only that there is no configuration.
@@ -1138,7 +1120,8 @@ public interface Repository extends Persistable {
 				}
 
 				// commit association to this repository
-				this.extract(association, null);
+				Commit commit = this.getEntityFactory().createCommit(MERGE);
+				this.extract(association, commit);
 			}
 		}
 
@@ -1149,7 +1132,7 @@ public interface Repository extends Persistable {
 		 *
 		 * @param other The other repository to be merged into this repository.
 		 */
-		public default void merge_old(Repository.Op other) {
+		default void merge_old(Repository.Op other) {
 			checkNotNull(other);
 			checkArgument(other.getClass().equals(this.getClass())); // TODO: this might not be necessary. it might be enough to have the artifact trees of the correct type.
 
@@ -1283,11 +1266,10 @@ public interface Repository extends Persistable {
 		 *
 		 * @return The diff object.
 		 */
-		public default Diff diff() {
+		default Diff diff() {
 			// TODO
 			throw new UnsupportedOperationException("Not yet implemented.");
 		}
-
 	}
 
 

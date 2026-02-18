@@ -1,7 +1,6 @@
 package at.jku.isse.ecco.gui.view.artifacts;
 
 import at.jku.isse.ecco.EccoException;
-import at.jku.isse.ecco.adapter.AssociationInfo;
 import at.jku.isse.ecco.composition.LazyCompositionRootNode;
 import at.jku.isse.ecco.core.Association;
 import at.jku.isse.ecco.gui.ExceptionAlert;
@@ -33,8 +32,6 @@ import javafx.stage.Window;
 import javafx.util.Callback;
 
 import java.io.IOException;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.*;
 
 public class ArtifactsView extends BorderPane implements EccoListener {

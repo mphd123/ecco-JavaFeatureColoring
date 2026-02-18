@@ -1,7 +1,6 @@
 package at.jku.isse.ecco.gui.view.detail;
 
 import at.jku.isse.ecco.core.Variant;
-import at.jku.isse.ecco.service.EccoService;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
