@@ -1,9 +1,7 @@
 package at.jku.isse.ecco.adapter.text;
 
-import at.jku.isse.ecco.adapter.ArtifactExporter;
-import at.jku.isse.ecco.adapter.ArtifactReader;
-import at.jku.isse.ecco.adapter.ArtifactViewer;
-import at.jku.isse.ecco.adapter.ArtifactWriter;
+import at.jku.isse.ecco.adapter.*;
+import at.jku.isse.ecco.adapter.text.View.TextFeatureColorViewer;
 import at.jku.isse.ecco.tree.Node;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -40,6 +38,11 @@ public class TextModule extends AbstractModule {
 				new TypeLiteral<ArtifactExporter<Set<Node>, Path>>() {
 				});
 		exporterMultibinder.addBinding().to(TextExporter.class);
+
+		final Multibinder<AssociationInfoArtifactViewer> assInfoMultiBinder = Multibinder.newSetBinder(binder(),
+				new TypeLiteral<>() {
+				});
+		assInfoMultiBinder.addBinding().to(TextFeatureColorViewer.class);
 	}
 
 }
