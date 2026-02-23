@@ -82,7 +82,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
                         // under JavaFileArtifactData there should either be imports (just a simple String) or Type Declaration
                         javaBlocks.add(new SimpleBlock(child,getColorForNode(child)));
                     }else if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION)) {
-                        javaBlocks.add(new TypeDecBlock(child,getColorForNode(child)));
+                        javaBlocks.add(new TypeDecBlock(child,this));
                     }
                 }
 
@@ -116,7 +116,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
         listView.refresh();
     }
 
-    private Color getColorForNode(Node child ) {
+    public Color getColorForNode(Node child) {
         Color color = Color.WHITE;
         Association assoc = child.getArtifact().getContainingNode() != null ? child.getArtifact().getContainingNode().getContainingAssociation() : null;
         if (assoc != null && associationInfos.containsKey(assoc.getId())) {

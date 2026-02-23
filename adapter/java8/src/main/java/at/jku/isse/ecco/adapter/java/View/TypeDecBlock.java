@@ -21,8 +21,11 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
     private List<Label> decLabels = new ArrayList<>();
     private String typeName; // also has "class " or others before
 
-    public TypeDecBlock(Node javaTypeDecNode, Color backgroundColor) {
-        super(javaTypeDecNode,backgroundColor);
+    private JavaViewer javaViewer;
+
+    public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer) {
+        super(javaTypeDecNode,javaViewer.getColorForNode(javaTypeDecNode));
+        this.javaViewer = javaViewer;
         if (text != null) {
             typeName = text;
         }
@@ -54,6 +57,7 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
         for (SimpleBlock simpleBlock : modiferBlocks) {
             simpleBlock.setBackGroundColor(aId, newColor);
         }
+
         extendsBlock.setBackGroundColor(aId, newColor);
 
         for (SimpleBlock simpleBlock : implementationBlocks) {
@@ -110,10 +114,10 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
             if(child.getArtifact().getData() instanceof JavaTreeArtifactData data ){
                 if(data.getDataAsString().startsWith("@")){
                     annotations.append(child.getArtifact().getData()).append("\n");
-                    annotationBlocks.add(new SimpleBlock(child,defaultColor));
+                    annotationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)));
                 }else{
                     modifiers.append(child.getArtifact().getData()).append(" ");
-                    modiferBlocks.add(new SimpleBlock(child,defaultColor, " ", false));
+                    modiferBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child), " ", false));
                 }
             }
         }
@@ -124,20 +128,19 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
         if (ExtendsNode.getChildren().isEmpty()) return;
         String extendedClassName = ((JavaTreeArtifactData) ExtendsNode.getChildren().getFirst().getArtifact().getData()).getDataAsString();
         sb.append(" extends ").append(extendedClassName);
-        extendsBlock = new SimpleBlock(ExtendsNode,defaultColor,"extends ", true);
+        extendsBlock = new SimpleBlock(ExtendsNode,javaViewer.getColorForNode(ExtendsNode),"extends ", true);
     }
     private void handleImplementsNode(StringBuilder sb, Node ImplNode){
         if (ImplNode.getChildren().isEmpty()) return;
         sb.append(" implements ");
         int count = 0;
         for (Node child : ImplNode.getChildren()) {
-            implementationBlocks.add(new SimpleBlock(child,defaultColor));
+            implementationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)));
             String extendedClassName = ((JavaTreeArtifactData) child.getArtifact().getData()).getDataAsString();
             if (count > 0){sb.append(", ");}
             sb.append(extendedClassName);
             count++;
         }
 
-        implementationBlocks.add(new SimpleBlock(ImplNode,defaultColor));
     }
 }

@@ -5,7 +5,7 @@ import at.jku.isse.ecco.adapter.AssociationInfo;
 import at.jku.isse.ecco.adapter.AssociationInfoArtifactViewer;
 import at.jku.isse.ecco.adapter.dispatch.PluginArtifactData;
 import at.jku.isse.ecco.gui.view.artifacts.AssociationInfoImpl;
-import at.jku.isse.ecco.gui.view.ArtifactsView;
+import at.jku.isse.ecco.gui.view.artifacts.ArtifactsView;
 import at.jku.isse.ecco.gui.view.graph.PartialOrderGraphView;
 import at.jku.isse.ecco.pog.PartialOrderGraph;
 import at.jku.isse.ecco.service.EccoService;
