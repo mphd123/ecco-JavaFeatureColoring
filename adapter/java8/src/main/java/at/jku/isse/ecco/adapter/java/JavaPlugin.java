@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.java;
 
 import at.jku.isse.ecco.adapter.ArtifactPlugin;
+import at.jku.isse.ecco.adapter.java.JavaModule;
 import com.google.inject.Module;
 
 /**

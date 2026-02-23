@@ -1,5 +1,4 @@
 package at.jku.isse.ecco.adapter.java.jdtast;
-
 import org.eclipse.jdt.core.dom.*;
 
 public class NeedsMoreDetailASTVisitor extends ASTVisitor {

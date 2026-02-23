@@ -3,7 +3,6 @@ package at.jku.isse.ecco.adapter.text.View;
 import at.jku.isse.ecco.adapter.AssociationInfo;
 import at.jku.isse.ecco.adapter.AssociationInfoArtifactViewer;
 import at.jku.isse.ecco.adapter.dispatch.PluginArtifactData;
-import at.jku.isse.ecco.adapter.text.LineArtifactData;
 import at.jku.isse.ecco.adapter.text.TextPlugin;
 import at.jku.isse.ecco.core.Association;
 import at.jku.isse.ecco.tree.Node;
