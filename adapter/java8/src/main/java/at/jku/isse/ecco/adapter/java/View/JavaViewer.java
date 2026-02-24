@@ -2,6 +2,7 @@ package at.jku.isse.ecco.adapter.java.View;
 
 import at.jku.isse.ecco.adapter.AssociationInfo;
 import at.jku.isse.ecco.adapter.AssociationInfoArtifactViewer;
+import at.jku.isse.ecco.adapter.dispatch.PluginArtifactData;
 import at.jku.isse.ecco.adapter.java.JavaFileArtifactData;
 import at.jku.isse.ecco.adapter.java.JavaPlugin;
 import at.jku.isse.ecco.adapter.java.JavaTreeArtifactData;
@@ -73,16 +74,18 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
     @Override
     public void showTree(Node node) {
         javaBlocks.clear();
+        if (node.getArtifact().getData() instanceof PluginArtifactData) {
+            node = node.getChildren().getFirst();
+        }
         if (node.getArtifact().getData() instanceof JavaFileArtifactData) {
             for (Node child : node.getChildren()) {
                 if (child.getArtifact().getData() instanceof JavaTreeArtifactData data) {
-                    System.out.println(child.getArtifact().getData());
 
                     if (data.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)) {
                         // under JavaFileArtifactData there should either be imports (just a simple String) or Type Declaration
                         javaBlocks.add(new SimpleBlock(child,getColorForNode(child)));
                     }else if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION)) {
-                        javaBlocks.add(new TypeDecBlock(child,this));
+                        javaBlocks.add(new TypeDecBlock(child,this,0,true));
                     }
                 }
 

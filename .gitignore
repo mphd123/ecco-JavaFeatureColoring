@@ -16,3 +16,4 @@ desktop.ini
 **/*.deb
 **/*.rpm
 **/*.zip
+adapter/python

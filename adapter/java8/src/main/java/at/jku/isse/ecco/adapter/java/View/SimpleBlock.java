@@ -14,14 +14,19 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
 
     }
 
-    public SimpleBlock(Node child, Color defaultColor, String additionalText, boolean additionalTextBefore) {
-        super(child,defaultColor,additionalText,additionalTextBefore);
+    public SimpleBlock(Node node, Color backgroundColor, String additionalText, boolean additionalTextBefore) {
+        super(node,defaultColor,additionalText,additionalTextBefore);
+    }
+    public SimpleBlock(Node node,Color backgroundColor,int depthOfParent,boolean isIndented) {
+        super(node,backgroundColor,depthOfParent, isIndented);
     }
 
     @Override
     public VBox getCellContent() {
         VBox content = new VBox();
-        content.getChildren().add( setupLabel(text));
+        String intededText  = text;
+        if (isIndented) intededText = getIndentation() + text;
+        content.getChildren().add( setupLabel(intededText));
         return content;
     }
 }

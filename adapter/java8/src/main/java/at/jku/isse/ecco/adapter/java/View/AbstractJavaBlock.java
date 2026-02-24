@@ -15,12 +15,17 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
     protected final Node node;
     protected final Association association;
     protected String text;
+    protected int depth;
+    protected final boolean isIndented;
+    private static final char indentationSymbol ='\t';
 
     protected final ObjectProperty<Background> background = new SimpleObjectProperty<>();
     protected final ObjectProperty<Color> backgroundColor = new SimpleObjectProperty<>();
 
-    public AbstractJavaBlock(Node node,Color backgroundColor,String additionalText,boolean additionalTextBefore) {
+    public AbstractJavaBlock(Node node,Color backgroundColor,String additionalText,boolean additionalTextBefore,int depth,boolean isIndented) {
         this.node = node;
+        this.depth = depth;
+        this.isIndented = isIndented;
         StringBuilder sb = new StringBuilder();
         if (node.getArtifact().getData() instanceof JavaTreeArtifactData data) {
             sb.append(data.getDataAsString());
@@ -36,6 +41,14 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
         setupListeners();
         this.backgroundColor.set(backgroundColor);
     }
+
+    public AbstractJavaBlock(Node node,Color backgroundColor,String additionalText,boolean additionalTextBefore) {
+        this(node,backgroundColor,additionalText,additionalTextBefore,0,false);
+    }
+    public AbstractJavaBlock(Node node,Color backgroundColor,int depthOfParent,boolean isIndented) {
+        this(node,backgroundColor,null,false,depthOfParent,isIndented);
+    }
+
 
     public AbstractJavaBlock(Node node,Color backgroundColor) {
         this(node,backgroundColor,null,false);
@@ -63,6 +76,9 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
         l.backgroundProperty().set(background.getValue());
         l.backgroundProperty().bind(background);
         return l;
+    }
+    protected String getIndentation(){
+        return String.valueOf(indentationSymbol).repeat(Math.max(0, depth));
     }
 
     public Association getAssociation() {

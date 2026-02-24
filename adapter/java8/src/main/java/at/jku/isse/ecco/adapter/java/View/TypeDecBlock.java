@@ -10,84 +10,71 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterface{
+public class TypeDecBlock extends AbstractDecBlock {
 
 
-    private List<JavaBlockInterface> BodyInterfaces = new ArrayList<>();
-    private List<SimpleBlock> annotationBlocks = new ArrayList<>();
-    private List<SimpleBlock> modiferBlocks = new ArrayList<>();
+    private List<JavaBlockInterface> bodyInterfaces;
     private SimpleBlock extendsBlock;
-    private List<SimpleBlock> implementationBlocks = new ArrayList<>();
-    private List<Label> decLabels = new ArrayList<>();
-    private String typeName; // also has "class " or others before
+    private List<SimpleBlock> implementationBlocks;
 
-    private JavaViewer javaViewer;
+    public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
+        super(javaTypeDecNode,javaViewer,depthOfParent,isIndented);
+
+    }
 
     public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer) {
-        super(javaTypeDecNode,javaViewer.getColorForNode(javaTypeDecNode));
-        this.javaViewer = javaViewer;
-        if (text != null) {
-            typeName = text;
-        }
+        super(javaTypeDecNode,javaViewer);
 
-        StringBuilder sb = new StringBuilder(typeName);
-        for (Node child : node.getChildren()) {
-            if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData){
-                if (childData.getType().equals(JavaTreeArtifactData.NodeType.MODIFIER)){
-                    handleModifierNode(sb, child);
-                } else if (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_EXTENDS)){
-                    handleDecExtendsNode(sb, child);
-                } else if  (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_IMPLEMENTS)){
-                    handleImplementsNode(sb, child);
-                } else if  (childData.getType().equals(JavaTreeArtifactData.NodeType.AFTER)){
-                    //ToDo
-                }
+    }
+
+    @Override
+    protected void handlePossibleChild( Node child) {
+
+        super.handlePossibleChild(child);
+        if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
+            if (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_EXTENDS)) {
+                handleDecExtendsNode(child);
+            } else if (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_IMPLEMENTS)) {
+                handleImplementsNode(child);
+            } else if (childData.getType().equals(JavaTreeArtifactData.NodeType.AFTER)) {
+                handleClassBody(child);
             }
         }
-        text = sb.toString();
     }
+
+    @Override
+    protected void setup() {
+        bodyInterfaces = new ArrayList<>();
+        implementationBlocks = new ArrayList<>();
+    }
+
 
     @Override
     public void setBackGroundColor(String aId, Color newColor) {
         super.setBackGroundColor(aId, newColor);
-
-        for (SimpleBlock simpleBlock : annotationBlocks) {
-            simpleBlock.setBackGroundColor(aId, newColor);
-        }
-        for (SimpleBlock simpleBlock : modiferBlocks) {
-            simpleBlock.setBackGroundColor(aId, newColor);
-        }
 
         extendsBlock.setBackGroundColor(aId, newColor);
 
         for (SimpleBlock simpleBlock : implementationBlocks) {
             simpleBlock.setBackGroundColor(aId, newColor);
         }
-        for (JavaBlockInterface javaBlockInterface : BodyInterfaces) {
+        for (JavaBlockInterface javaBlockInterface : bodyInterfaces) {
             javaBlockInterface.setBackGroundColor(aId, newColor);
         }
     }
 
     @Override
     public VBox getCellContent() {
-        VBox content = new VBox();
-        for (SimpleBlock anno : annotationBlocks) {
-            content.getChildren().add( anno.getCellContent());
-        }
+        VBox content = super.getCellContent();
 
-        HBox mainSignature = new HBox();
-        for (SimpleBlock mod : modiferBlocks) {
-            mainSignature.getChildren().add( mod.getCellContent());
-        }
-
-        Label typeNameLabel = setupLabel(typeName);
+        Label typeNameLabel = setupLabel(text);
         decLabels.add(typeNameLabel);
         mainSignature.getChildren().add(typeNameLabel);
 
         if (extendsBlock != null) {
             mainSignature.getChildren().add(extendsBlock.getCellContent());
         }
-        if (implementationBlocks.size() > 0) {
+        if (!implementationBlocks.isEmpty()) {
             mainSignature.getChildren().add(setupLabel(" implements "));
             for (SimpleBlock block : implementationBlocks) {
                 mainSignature.getChildren().add(block.getCellContent());
@@ -98,7 +85,12 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
         mainSignature.getChildren().add(lbrace);
         content.getChildren().add(mainSignature);
 
-        Label rbrace = setupLabel("}");
+        for (JavaBlockInterface bodyNode : bodyInterfaces) {
+            content.getChildren().add(bodyNode.getCellContent());
+        }
+
+
+        Label rbrace = setupLabel(getIndentation() + "}");
         decLabels.add(rbrace);
         content.getChildren().add(rbrace);
 
@@ -106,41 +98,26 @@ public class TypeDecBlock extends AbstractJavaBlock implements JavaBlockInterfac
         return content;
     }
 
-
-    private void handleModifierNode(StringBuilder sb, Node ModiferNode){
-        StringBuilder annotations =new StringBuilder();
-        StringBuilder modifiers =new StringBuilder();
-        for (Node child : ModiferNode.getChildren()) {
-            if(child.getArtifact().getData() instanceof JavaTreeArtifactData data ){
-                if(data.getDataAsString().startsWith("@")){
-                    annotations.append(child.getArtifact().getData()).append("\n");
-                    annotationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)));
-                }else{
-                    modifiers.append(child.getArtifact().getData()).append(" ");
-                    modiferBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child), " ", false));
+    private void handleDecExtendsNode( Node ExtendsNode){
+        if (ExtendsNode.getChildren().isEmpty()) return;
+        extendsBlock = new SimpleBlock(ExtendsNode.getChildren().getFirst(),javaViewer.getColorForNode(ExtendsNode)," extends ", true);
+    }
+    private void handleImplementsNode( Node ImplNode){
+        if (ImplNode.getChildren().isEmpty()) return;
+        for (Node child : ImplNode.getChildren()) {
+            implementationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)));
+        }
+    }
+    private void handleClassBody(Node afterNode){
+        int childDepth = depth +1;
+        for (Node child : afterNode.getChildren()) {
+            if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
+                if (childData.getType().equals(JavaTreeArtifactData.NodeType.FIELD_DECLARATION)) {
+                    bodyInterfaces.add(new FieldDec(child,javaViewer,childDepth,isIndented));
+                } else if  (childData.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION)) {
+                    bodyInterfaces.add(new MethodDec(child,javaViewer,childDepth,isIndented));
                 }
             }
         }
-        sb.insert(0, annotations.append(modifiers));
-    }
-
-    private void handleDecExtendsNode(StringBuilder sb, Node ExtendsNode){
-        if (ExtendsNode.getChildren().isEmpty()) return;
-        String extendedClassName = ((JavaTreeArtifactData) ExtendsNode.getChildren().getFirst().getArtifact().getData()).getDataAsString();
-        sb.append(" extends ").append(extendedClassName);
-        extendsBlock = new SimpleBlock(ExtendsNode,javaViewer.getColorForNode(ExtendsNode),"extends ", true);
-    }
-    private void handleImplementsNode(StringBuilder sb, Node ImplNode){
-        if (ImplNode.getChildren().isEmpty()) return;
-        sb.append(" implements ");
-        int count = 0;
-        for (Node child : ImplNode.getChildren()) {
-            implementationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)));
-            String extendedClassName = ((JavaTreeArtifactData) child.getArtifact().getData()).getDataAsString();
-            if (count > 0){sb.append(", ");}
-            sb.append(extendedClassName);
-            count++;
-        }
-
     }
 }
