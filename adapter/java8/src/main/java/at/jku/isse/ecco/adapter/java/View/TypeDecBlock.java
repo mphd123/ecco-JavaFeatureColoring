@@ -13,24 +13,19 @@ import java.util.List;
 public class TypeDecBlock extends AbstractDecBlock {
 
 
-    private List<JavaBlockInterface> bodyInterfaces;
+    private List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
     private SimpleBlock extendsBlock;
-    private List<SimpleBlock> implementationBlocks;
+    private List<SimpleBlock> implementationBlocks = new ArrayList<>();
 
     public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode,javaViewer,depthOfParent,isIndented);
-
+        parseChildren();
     }
 
-    public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer) {
-        super(javaTypeDecNode,javaViewer);
-
-    }
 
     @Override
-    protected void handlePossibleChild( Node child) {
+    protected void handleSpecificNodes( Node child) {
 
-        super.handlePossibleChild(child);
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
             if (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_EXTENDS)) {
                 handleDecExtendsNode(child);
@@ -43,18 +38,9 @@ public class TypeDecBlock extends AbstractDecBlock {
     }
 
     @Override
-    protected void setup() {
-        bodyInterfaces = new ArrayList<>();
-        implementationBlocks = new ArrayList<>();
-    }
-
-
-    @Override
     public void setBackGroundColor(String aId, Color newColor) {
         super.setBackGroundColor(aId, newColor);
-
         extendsBlock.setBackGroundColor(aId, newColor);
-
         for (SimpleBlock simpleBlock : implementationBlocks) {
             simpleBlock.setBackGroundColor(aId, newColor);
         }
@@ -71,9 +57,8 @@ public class TypeDecBlock extends AbstractDecBlock {
         decLabels.add(typeNameLabel);
         mainSignature.getChildren().add(typeNameLabel);
 
-        if (extendsBlock != null) {
-            mainSignature.getChildren().add(extendsBlock.getCellContent());
-        }
+        if (extendsBlock != null)  mainSignature.getChildren().add(extendsBlock.getCellContent());
+
         if (!implementationBlocks.isEmpty()) {
             mainSignature.getChildren().add(setupLabel(" implements "));
             for (SimpleBlock block : implementationBlocks) {
@@ -89,12 +74,9 @@ public class TypeDecBlock extends AbstractDecBlock {
             content.getChildren().add(bodyNode.getCellContent());
         }
 
-
         Label rbrace = setupLabel(getIndentation() + "}");
         decLabels.add(rbrace);
         content.getChildren().add(rbrace);
-
-
         return content;
     }
 

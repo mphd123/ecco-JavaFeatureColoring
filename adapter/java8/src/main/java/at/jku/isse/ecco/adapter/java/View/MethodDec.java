@@ -10,34 +10,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MethodDec extends AbstractDecBlock{
-    private List<JavaBlockInterface> bodyInterfaces;
-    private List<JavaBlockInterface> parameterInterfaces;
+    private List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
+    private List<JavaBlockInterface> parameterInterfaces = new ArrayList<>();
     public MethodDec(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode, javaViewer,depthOfParent,isIndented);
+        parseChildren();
     }
 
-    public MethodDec(Node javaTypeDecNode, JavaViewer javaViewer) {
-        super(javaTypeDecNode, javaViewer);
-    }
 
     // not sure how parameters are handle since there is a node for it but it is also in the main node as a string
     @Override
-    protected void handlePossibleChild(Node child) {
-        super.handlePossibleChild(child);
+    protected void handleSpecificNodes(Node child) {
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
             if (childData.getType().equals(JavaTreeArtifactData.NodeType.BLOCK)) {
                 handleBlock( child);
             } else if (childData.getType().equals(JavaTreeArtifactData.NodeType.BEFORE)) {
-                //nto sure what the node is used for since the information is in the method dec node
+                //not sure what the node is used for since the information is in the method dec node
             }
         }
     }
 
-    @Override
-    protected void setup() {
-        bodyInterfaces = new ArrayList<>();
-        parameterInterfaces = new ArrayList<>();
-    }
 
     @Override
     public VBox getCellContent() {

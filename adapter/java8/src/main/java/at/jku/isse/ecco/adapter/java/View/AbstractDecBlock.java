@@ -25,32 +25,26 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
         super(javaTypeDecNode,javaViewer.getColorForNode(javaTypeDecNode),depthOfParent,isIndented);
         handledNoteTypes.add(JavaTreeArtifactData.NodeType.MODIFIER);
         this.javaViewer = javaViewer;
-        setup();
-        for (Node child : node.getChildren()) {
-            handlePossibleChild(child);
-        }
     }
 
     public AbstractDecBlock(Node javaTypeDecNode, JavaViewer javaViewer) {
-        super(javaTypeDecNode,javaViewer.getColorForNode(javaTypeDecNode));
-        handledNoteTypes.add(JavaTreeArtifactData.NodeType.MODIFIER);
-        this.javaViewer = javaViewer;
-        setup();
-        for (Node child : node.getChildren()) {
-            handlePossibleChild(child);
-        }
+        this(javaTypeDecNode,javaViewer,0,false);
     }
 
 
-    protected void handlePossibleChild( Node child) {
-        if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData){
-            if (childData.getType().equals(JavaTreeArtifactData.NodeType.MODIFIER)){
-                handleModifierNode(child);
+    protected abstract void handleSpecificNodes(Node node);
+
+
+    protected void parseChildren() {
+        for (Node child : node.getChildren()){
+            if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData){
+                if (childData.getType().equals(JavaTreeArtifactData.NodeType.MODIFIER)) {
+                    handleModifierNode(child);
+                }else handleSpecificNodes(child);
             }
         }
     }
 
-    protected abstract void setup();
 
     private void handleModifierNode( Node ModiferNode){
         for (Node child : ModiferNode.getChildren()) {
@@ -73,11 +67,9 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
         for (SimpleBlock anno : annotationBlocks) {
             content.getChildren().add( anno.getCellContent());
         }
-        ;
         for (SimpleBlock mod : modiferBlocks) {
             mainSignature.getChildren().add( mod.getCellContent());
         }
-
         return content;
     }
 

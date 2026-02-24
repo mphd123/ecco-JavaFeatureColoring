@@ -16,15 +16,11 @@ public class FieldDec extends AbstractDecBlock{
 
     public FieldDec(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode,javaViewer,depthOfParent,isIndented);
-    }
-
-    public FieldDec(Node javaTypeDecNode, JavaViewer javaViewer) {
-        super(javaTypeDecNode,javaViewer);
+        parseChildren();
     }
 
     @Override
-    protected void handlePossibleChild( Node child) {
-        super.handlePossibleChild( child);
+    protected void handleSpecificNodes( Node child) {
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
             if (childData.getType().equals(JavaTreeArtifactData.NodeType.FIELD_TYPE)) {
                 handleFieldType( child);
@@ -32,10 +28,6 @@ public class FieldDec extends AbstractDecBlock{
                 handleFieldInit(child);
             }
         }
-    }
-
-    @Override
-    protected void setup() {
     }
 
 
