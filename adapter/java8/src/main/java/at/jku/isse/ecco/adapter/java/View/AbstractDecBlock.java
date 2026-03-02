@@ -16,9 +16,7 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
     protected int  modifierCount = 0;
     protected List<Label> decLabels = new ArrayList<>();
     protected HBox mainSignature = new HBox();
-
     protected static List<JavaTreeArtifactData.NodeType> handledNoteTypes  = new ArrayList<>();
-
     protected JavaViewer javaViewer;
 
     public AbstractDecBlock(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
@@ -31,9 +29,7 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
         this(javaTypeDecNode,javaViewer,0,false);
     }
 
-
     protected abstract void handleSpecificNodes(Node node);
-
 
     protected void parseChildren() {
         for (Node child : node.getChildren()){
@@ -44,7 +40,6 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
             }
         }
     }
-
 
     private void handleModifierNode( Node ModiferNode){
         for (Node child : ModiferNode.getChildren()) {

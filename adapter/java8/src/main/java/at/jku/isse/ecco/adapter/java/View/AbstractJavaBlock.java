@@ -49,11 +49,9 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
         this(node,backgroundColor,null,false,depthOfParent,isIndented);
     }
 
-
     public AbstractJavaBlock(Node node,Color backgroundColor) {
         this(node,backgroundColor,null,false);
     }
-
 
     private void setupListeners() {
         backgroundColor.addListener( (o, oldVal, newVal) -> {

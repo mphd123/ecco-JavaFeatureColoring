@@ -30,7 +30,6 @@ public class FieldDec extends AbstractDecBlock{
         }
     }
 
-
     @Override
     public void setBackGroundColor(String aId, Color newColor) {
         super.setBackGroundColor(aId, newColor);
