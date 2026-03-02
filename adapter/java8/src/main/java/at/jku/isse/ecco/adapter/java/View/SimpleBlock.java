@@ -25,8 +25,27 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
     public VBox getCellContent() {
         VBox content = new VBox();
         String intededText  = text;
-        if (isIndented) intededText = getIndentation() + text;
+        if (isIndented) intededText = processTextIndents(text);
         content.getChildren().add( setupLabel(intededText));
         return content;
+    }
+
+
+    private String processTextIndents(String text){
+        StringBuilder resultBuilder = new StringBuilder(getIndentation());
+        StringBuilder intededStringbuilder = new StringBuilder(getIndentation());
+        for (int i = 0; i < text.length();i++){
+            char c = text.charAt(i);
+            resultBuilder.append(c);
+            if(c == '\n') {
+                intededStringbuilder.append(indentationSymbol);
+                resultBuilder.append(intededStringbuilder);
+            }
+        }
+        System.out.println(resultBuilder.toString());
+
+        return resultBuilder.toString();
+
+
     }
 }

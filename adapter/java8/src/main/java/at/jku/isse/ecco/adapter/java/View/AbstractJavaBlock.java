@@ -17,7 +17,7 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
     protected String text;
     protected int depth;
     protected final boolean isIndented;
-    private static final char indentationSymbol ='\t';
+    protected static final char indentationSymbol ='\t';
 
     protected final ObjectProperty<Background> background = new SimpleObjectProperty<>();
     protected final ObjectProperty<Color> backgroundColor = new SimpleObjectProperty<>();
