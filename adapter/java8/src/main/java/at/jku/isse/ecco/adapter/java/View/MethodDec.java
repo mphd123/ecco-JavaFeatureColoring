@@ -11,7 +11,6 @@ import java.util.List;
 
 public class MethodDec extends AbstractDecBlock{
     private final List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
-    private final List<JavaBlockInterface> parameterInterfaces = new ArrayList<>(); // again not sure how i should handle parameters from the example
     public MethodDec(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode, javaViewer,depthOfParent,isIndented);
         parseChildren();
@@ -60,10 +59,6 @@ public class MethodDec extends AbstractDecBlock{
         for (JavaBlockInterface bodyInterface : bodyInterfaces) {
             bodyInterface.setBackGroundColor(aId, newColor);
         }
-
-        for (JavaBlockInterface parameterInterface : parameterInterfaces) {
-            parameterInterface.setBackGroundColor(aId, newColor);
-        }
     }
 
     private void handleBlock(Node blockNode) {
@@ -72,7 +67,7 @@ public class MethodDec extends AbstractDecBlock{
             if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
                 if (childData.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)) {
                     bodyInterfaces.add(new SimpleBlock(child,javaViewer.getColorForNode(child),childDepth,isIndented));
-                    // it seems that there are mod enode types but they are not used
+                    // it seems that there are more node types but they are not used
                 }
             }
         }

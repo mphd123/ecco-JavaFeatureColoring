@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TypeDecBlock extends AbstractDecBlock {
-
-
+    
     private List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
     private SimpleBlock extendsBlock;
     private List<SimpleBlock> implementationBlocks = new ArrayList<>();
@@ -24,10 +23,8 @@ public class TypeDecBlock extends AbstractDecBlock {
         }
     }
 
-
     @Override
     protected void handleSpecificNodes( Node child) {
-
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
             if (childData.getType().equals(JavaTreeArtifactData.NodeType.DECLARATION_EXTENDS)) {
                 handleDecExtendsNode(child);

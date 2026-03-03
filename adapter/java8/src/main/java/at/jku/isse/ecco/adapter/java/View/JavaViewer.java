@@ -14,11 +14,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
-
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,7 +25,6 @@ import java.util.Map;
 public class JavaViewer extends BorderPane implements AssociationInfoArtifactViewer {
     private final HashMap<String, AssociationInfo> associationInfos;
     private final HashMap<String, PropertyChangeListener> associationListeners ;
-
     ObservableList<JavaBlockInterface> javaBlocks = FXCollections.observableArrayList();
     ListView<JavaBlockInterface> listView;
 
@@ -67,32 +64,49 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
     }
 
     @Override
-    public String getPluginId() {
-        return JavaPlugin.class.getName();
-    }
-
-    @Override
     public void showTree(Node node) {
         javaBlocks.clear();
         if (node.getArtifact().getData() instanceof PluginArtifactData) {
             node = node.getChildren().getFirst();
         }
-        if (node.getArtifact().getData() instanceof JavaFileArtifactData) {
-            for (Node child : node.getChildren()) {
-                if (child.getArtifact().getData() instanceof JavaTreeArtifactData data) {
-
-                    if (data.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)) {
-                        // under JavaFileArtifactData there should either be imports (just a simple String) or Type Declaration
-                        javaBlocks.add(new SimpleBlock(child,getColorForNode(child)));
-                    }else if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION)) {
-                        javaBlocks.add(new TypeDecBlock(child,this,0,true));
-                    }
-                }
-
-            }
-        }
+        if (node.getArtifact().getData() instanceof JavaFileArtifactData) handleFileNode(node);
+        else if (node.getArtifact().getData() instanceof JavaTreeArtifactData) handleTreeNode(node);
+        else javaBlocks.add(new NotImplementedNode(node));
         this.setCenter(listView);
     }
+
+    private void handleFileNode(Node node) {
+        for (Node child : node.getChildren()) {
+            if (child.getArtifact().getData() instanceof JavaTreeArtifactData data) {
+                if (data.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)) {
+                    // under JavaFileArtifactData there should either be imports (just a simple String) or Type Declaration
+                    javaBlocks.add(new SimpleBlock(child, getColorForNode(child)));
+                } else if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION)) {
+                    javaBlocks.add(new TypeDecBlock(child, this, 0, true));
+                }
+            }
+        }
+    }
+
+    private void handleTreeNode(Node node) {
+        JavaTreeArtifactData data = (JavaTreeArtifactData) node.getArtifact().getData();
+        if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION) ) {
+            javaBlocks.add(new TypeDecBlock(node, this, 0, true));
+        }
+        else if (data.getType().equals(JavaTreeArtifactData.NodeType.FIELD_DECLARATION)) {
+            javaBlocks.add(new FieldDec(node,this,0,true));
+        } else if  (data.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION)) {
+            javaBlocks.add(new MethodDec(node,this,0,true));
+        } else if (data.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)
+                &&  (node.getParent().getArtifact().getData() instanceof JavaTreeArtifactData parentData
+                && parentData.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION))
+                || node.getParent().getArtifact().getData() instanceof JavaFileArtifactData
+        ) {
+            // this is here to filter out other SIMPLE_JUST_A_STRING String nodes as displaying them by themselves only makes sense for Statements and Imports
+            javaBlocks.add(new SimpleBlock(node,getColorForNode(node)));
+        } else showTree(node.getParent());
+    }
+
 
     @Override
     public void setAssociationInfos(Collection<AssociationInfo> associationInfos) {
@@ -141,6 +155,11 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
                 listView.refresh();
             }
         };
+    }
+
+    @Override
+    public String getPluginId() {
+        return JavaPlugin.class.getName();
     }
 
 

@@ -75,6 +75,7 @@ public abstract class AbstractJavaBlock implements JavaBlockInterface{
         l.backgroundProperty().bind(background);
         return l;
     }
+
     protected String getIndentation(){
         return String.valueOf(indentationSymbol).repeat(Math.max(0, depth));
     }

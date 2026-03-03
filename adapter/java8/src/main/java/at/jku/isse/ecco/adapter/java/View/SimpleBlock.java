@@ -10,8 +10,8 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
 
     public SimpleBlock(Node node, Color backgroundColor) {
         super(node,backgroundColor);
-
     }
+
     public SimpleBlock(Node node, Color backgroundColor, String additionalText, boolean additionalTextBefore,int depthOfParent,boolean isIndented) {
         super(node,backgroundColor,additionalText,additionalTextBefore,depthOfParent,isIndented);
     }
@@ -23,6 +23,11 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
         super(node,backgroundColor,depthOfParent, isIndented);
     }
 
+    public void insertText(String addedText, boolean additionalTextBefore) {
+        if (additionalTextBefore) text = text + addedText;
+        else text = addedText + text;
+    }
+
     @Override
     public VBox getCellContent() {
         VBox content = new VBox();
@@ -32,9 +37,6 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
         return content;
     }
 
-    public void insertText(String addedText, boolean additionalTextBefore) {
-        if (additionalTextBefore) text =  text + addedText ;
-        else text =addedText + text;
     private String processTextIndents(String text){
         StringBuilder resultBuilder = new StringBuilder(getIndentation());
         StringBuilder intededStringbuilder = new StringBuilder(getIndentation());
