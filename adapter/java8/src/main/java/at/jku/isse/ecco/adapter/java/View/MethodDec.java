@@ -10,11 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MethodDec extends AbstractDecBlock{
-    private List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
-    private List<JavaBlockInterface> parameterInterfaces = new ArrayList<>();
+    private final List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
+    private final List<JavaBlockInterface> parameterInterfaces = new ArrayList<>(); // again not sure how i should handle parameters from the example
     public MethodDec(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode, javaViewer,depthOfParent,isIndented);
         parseChildren();
+
     }
 
 

@@ -3,10 +3,8 @@ package at.jku.isse.ecco.adapter.java.View;
 import at.jku.isse.ecco.adapter.java.JavaTreeArtifactData;
 import at.jku.isse.ecco.tree.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +18,10 @@ public class TypeDecBlock extends AbstractDecBlock {
     public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode,javaViewer,depthOfParent,isIndented);
         parseChildren();
+
+        for (int i = 0; i < implementationBlocks.size(); i++) {
+            if (i == 0 && i != implementationBlocks.size() -1 ) implementationBlocks.get(i).insertText(", ", false);
+        }
     }
 
 

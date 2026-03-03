@@ -13,9 +13,12 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
         super(node,backgroundColor);
 
     }
+    public SimpleBlock(Node node, Color backgroundColor, String additionalText, boolean additionalTextBefore,int depthOfParent,boolean isIndented) {
+        super(node,backgroundColor,additionalText,additionalTextBefore,depthOfParent,isIndented);
+    }
 
     public SimpleBlock(Node node, Color backgroundColor, String additionalText, boolean additionalTextBefore) {
-        super(node,defaultColor,additionalText,additionalTextBefore);
+        super(node,backgroundColor,additionalText,additionalTextBefore);
     }
     public SimpleBlock(Node node,Color backgroundColor,int depthOfParent,boolean isIndented) {
         super(node,backgroundColor,depthOfParent, isIndented);
@@ -28,5 +31,10 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
         if (isIndented) intededText = getIndentation() + text;
         content.getChildren().add( setupLabel(intededText));
         return content;
+    }
+
+    public void insertText(String addedText, boolean additionalTextBefore) {
+        if (additionalTextBefore) text =  text + addedText ;
+        else text =addedText + text;
     }
 }

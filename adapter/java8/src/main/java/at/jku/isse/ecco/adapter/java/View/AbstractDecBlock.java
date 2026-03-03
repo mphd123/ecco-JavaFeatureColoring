@@ -17,23 +17,15 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
     protected List<Label> decLabels = new ArrayList<>();
     protected HBox mainSignature = new HBox();
 
-    protected static List<JavaTreeArtifactData.NodeType> handledNoteTypes  = new ArrayList<>();
 
     protected JavaViewer javaViewer;
 
     public AbstractDecBlock(Node javaTypeDecNode, JavaViewer javaViewer,int depthOfParent,boolean isIndented) {
         super(javaTypeDecNode,javaViewer.getColorForNode(javaTypeDecNode),depthOfParent,isIndented);
-        handledNoteTypes.add(JavaTreeArtifactData.NodeType.MODIFIER);
         this.javaViewer = javaViewer;
     }
 
-    public AbstractDecBlock(Node javaTypeDecNode, JavaViewer javaViewer) {
-        this(javaTypeDecNode,javaViewer,0,false);
-    }
-
-
     protected abstract void handleSpecificNodes(Node node);
-
 
     protected void parseChildren() {
         for (Node child : node.getChildren()){
@@ -52,7 +44,7 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
                 if(data.getDataAsString().startsWith("@")){
                     annotationBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child),depth,isIndented));
                 }else{
-                    if (modifierCount == 0) modiferBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child), depth,isIndented));
+                    if (modifierCount == 0) modiferBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child)," ", false, depth,isIndented));
                     else modiferBlocks.add(new SimpleBlock(child,javaViewer.getColorForNode(child), " ", false));
                     modifierCount++;
                 }

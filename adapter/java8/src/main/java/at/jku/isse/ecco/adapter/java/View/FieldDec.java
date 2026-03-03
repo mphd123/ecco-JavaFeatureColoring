@@ -2,13 +2,9 @@ package at.jku.isse.ecco.adapter.java.View;
 
 import at.jku.isse.ecco.adapter.java.JavaTreeArtifactData;
 import at.jku.isse.ecco.tree.Node;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class FieldDec extends AbstractDecBlock{
     private SimpleBlock fieldType;
