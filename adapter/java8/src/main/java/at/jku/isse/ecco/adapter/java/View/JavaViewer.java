@@ -14,8 +14,12 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.util.Callback;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
@@ -65,6 +69,18 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
 
     @Override
     public void showTree(Node node) {
+        HBox nodeInfoBox = new HBox();
+        Label NodeinfoLabel = new Label("The selected Node is : " );
+        Label NodeDescLabel = new Label(node.toString());
+        NodeDescLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        nodeInfoBox.getChildren().addAll(NodeinfoLabel,NodeDescLabel);
+        this.setTop(nodeInfoBox);
+        
+        showTreeRecursive(node);
+        this.setCenter(listView);
+    }
+
+    private void showTreeRecursive(Node node){
         javaBlocks.clear();
         if (node.getArtifact().getData() instanceof PluginArtifactData) {
             node = node.getChildren().getFirst();
@@ -72,7 +88,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
         if (node.getArtifact().getData() instanceof JavaFileArtifactData) handleFileNode(node);
         else if (node.getArtifact().getData() instanceof JavaTreeArtifactData) handleTreeNode(node);
         else javaBlocks.add(new NotImplementedNode(node));
-        this.setCenter(listView);
+
     }
 
     private void handleFileNode(Node node) {
@@ -91,7 +107,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
     private void handleTreeNode(Node node) {
         JavaTreeArtifactData data = (JavaTreeArtifactData) node.getArtifact().getData();
         if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION) ) {
-            javaBlocks.add(new TypeDecBlock(node, this, 0, false));
+            javaBlocks.add(new TypeDecBlock(node, this));
         }
         else if (data.getType().equals(JavaTreeArtifactData.NodeType.FIELD_DECLARATION)) {
             javaBlocks.add(new FieldDec(node,this));
@@ -104,7 +120,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
         ) {
             // this is here to filter out other SIMPLE_JUST_A_STRING String nodes as displaying them by themselves only makes sense for Statements and Imports
             javaBlocks.add(new SimpleBlock(node,getColorForNode(node)));
-        } else showTree(node.getParent());
+        } else showTreeRecursive(node.getParent());
     }
 
 
