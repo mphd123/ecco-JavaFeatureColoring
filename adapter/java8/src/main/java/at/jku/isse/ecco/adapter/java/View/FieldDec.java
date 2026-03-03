@@ -15,6 +15,10 @@ public class FieldDec extends AbstractDecBlock{
         parseChildren();
     }
 
+    public FieldDec(Node javaTypeDecNode, JavaViewer javaViewer) {
+        this(javaTypeDecNode,javaViewer,0,false);
+    }
+
     @Override
     protected void handleSpecificNodes( Node child) {
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
@@ -40,13 +44,11 @@ public class FieldDec extends AbstractDecBlock{
         mainSignature.getChildren().add(fieldType.getCellContent());
 
         Label typeNameLabel = setupLabel(text);
-        decLabels.add(typeNameLabel);
         mainSignature.getChildren().add(typeNameLabel);
 
         if (fieldInit != null) mainSignature.getChildren().add(fieldInit.getCellContent());
 
         Label end = setupLabel(";");
-        decLabels.add(end);
         mainSignature.getChildren().add(end);
         content.getChildren().add(mainSignature);
 

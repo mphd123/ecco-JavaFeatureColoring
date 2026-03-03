@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TypeDecBlock extends AbstractDecBlock {
-    
+
     private List<JavaBlockInterface> bodyInterfaces = new ArrayList<>();
     private SimpleBlock extendsBlock;
     private List<SimpleBlock> implementationBlocks = new ArrayList<>();
@@ -21,6 +21,10 @@ public class TypeDecBlock extends AbstractDecBlock {
         for (int i = 0; i < implementationBlocks.size(); i++) {
             if (i == 0 && i != implementationBlocks.size() -1 ) implementationBlocks.get(i).insertText(", ", false);
         }
+    }
+
+    public TypeDecBlock(Node javaTypeDecNode, JavaViewer javaViewer){
+        this(javaTypeDecNode,javaViewer,0,false);
     }
 
     @Override
@@ -53,7 +57,6 @@ public class TypeDecBlock extends AbstractDecBlock {
         VBox content = super.getCellContent();
 
         Label typeNameLabel = setupLabel(text);
-        decLabels.add(typeNameLabel);
         mainSignature.getChildren().add(typeNameLabel);
 
         if (extendsBlock != null)  mainSignature.getChildren().add(extendsBlock.getCellContent());
@@ -65,7 +68,6 @@ public class TypeDecBlock extends AbstractDecBlock {
             }
         }
         Label lbrace = setupLabel("{");
-        decLabels.add(lbrace);
         mainSignature.getChildren().add(lbrace);
         content.getChildren().add(mainSignature);
 
@@ -74,7 +76,6 @@ public class TypeDecBlock extends AbstractDecBlock {
         }
 
         Label rbrace = setupLabel(getIndentation() + "}");
-        decLabels.add(rbrace);
         content.getChildren().add(rbrace);
         return content;
     }
@@ -94,9 +95,11 @@ public class TypeDecBlock extends AbstractDecBlock {
         for (Node child : afterNode.getChildren()) {
             if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
                 if (childData.getType().equals(JavaTreeArtifactData.NodeType.FIELD_DECLARATION)) {
-                    bodyInterfaces.add(new FieldDec(child,javaViewer,childDepth,isIndented));
+                    bodyInterfaces.add(new FieldDec(child,javaViewer,childDepth,true));
                 } else if  (childData.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION)) {
-                    bodyInterfaces.add(new MethodDec(child,javaViewer,childDepth,isIndented));
+                    bodyInterfaces.add(new MethodDec(child,javaViewer,childDepth,true));
+                } else if(childData.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION)) {
+                    bodyInterfaces.add(new TypeDecBlock(child,javaViewer,childDepth,true));
                 }
             }
         }

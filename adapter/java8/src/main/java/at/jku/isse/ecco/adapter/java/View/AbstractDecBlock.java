@@ -14,7 +14,6 @@ public abstract class AbstractDecBlock extends AbstractJavaBlock {
     private List<SimpleBlock> annotationBlocks = new ArrayList<>();
     private List<SimpleBlock> modiferBlocks = new ArrayList<>();
     protected int  modifierCount = 0;
-    protected List<Label> decLabels = new ArrayList<>();
     protected HBox mainSignature = new HBox();
     protected JavaViewer javaViewer;
 

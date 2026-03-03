@@ -91,12 +91,12 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
     private void handleTreeNode(Node node) {
         JavaTreeArtifactData data = (JavaTreeArtifactData) node.getArtifact().getData();
         if (data.getType().equals(JavaTreeArtifactData.NodeType.TYPE_DECLARATION) ) {
-            javaBlocks.add(new TypeDecBlock(node, this, 0, true));
+            javaBlocks.add(new TypeDecBlock(node, this, 0, false));
         }
         else if (data.getType().equals(JavaTreeArtifactData.NodeType.FIELD_DECLARATION)) {
-            javaBlocks.add(new FieldDec(node,this,0,true));
+            javaBlocks.add(new FieldDec(node,this));
         } else if  (data.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION)) {
-            javaBlocks.add(new MethodDec(node,this,0,true));
+            javaBlocks.add(new MethodDec(node,this));
         } else if (data.getType().equals(JavaTreeArtifactData.NodeType.SIMPLE_JUST_A_STRING)
                 &&  (node.getParent().getArtifact().getData() instanceof JavaTreeArtifactData parentData
                 && parentData.getType().equals(JavaTreeArtifactData.NodeType.METHOD_DECLARATION))
