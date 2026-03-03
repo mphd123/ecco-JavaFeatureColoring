@@ -18,8 +18,7 @@ public class MethodDec extends AbstractDecBlock{
 
     }
 
-
-    // not sure how parameters are handle since there is a node for it but it is also in the main node as a string
+    // not sure how parameters are handle since there is a node for it, but it is also in the main node as a string
     @Override
     protected void handleSpecificNodes(Node child) {
         if (child.getArtifact().getData() instanceof JavaTreeArtifactData childData) {
@@ -30,7 +29,6 @@ public class MethodDec extends AbstractDecBlock{
             }
         }
     }
-
 
     @Override
     public VBox getCellContent() {

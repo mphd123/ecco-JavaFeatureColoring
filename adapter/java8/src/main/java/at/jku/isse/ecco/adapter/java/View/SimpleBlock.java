@@ -8,7 +8,6 @@ import javafx.scene.paint.Color;
 
 public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface {
 
-
     public SimpleBlock(Node node, Color backgroundColor) {
         super(node,backgroundColor);
 
@@ -28,7 +27,7 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
     public VBox getCellContent() {
         VBox content = new VBox();
         String intededText  = text;
-        if (isIndented) intededText = getIndentation() + text;
+        if (isIndented) intededText = processTextIndents(text);
         content.getChildren().add( setupLabel(intededText));
         return content;
     }
@@ -36,5 +35,17 @@ public class SimpleBlock extends AbstractJavaBlock implements JavaBlockInterface
     public void insertText(String addedText, boolean additionalTextBefore) {
         if (additionalTextBefore) text =  text + addedText ;
         else text =addedText + text;
+    private String processTextIndents(String text){
+        StringBuilder resultBuilder = new StringBuilder(getIndentation());
+        StringBuilder intededStringbuilder = new StringBuilder(getIndentation());
+        for (int i = 0; i < text.length();i++){
+            char c = text.charAt(i);
+            resultBuilder.append(c);
+            if(c == '\n') {
+                intededStringbuilder.append(indentationSymbol);
+                resultBuilder.append(intededStringbuilder);
+            }
+        }
+        return resultBuilder.toString();
     }
 }
