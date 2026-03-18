@@ -20,7 +20,6 @@ include 'adapter-c'
 include 'adapter-cpp'
 include 'adapter-runtime'
 include 'adapter-golang'
-include 'adapter-c'
 
 project(':base').projectDir = file('base')
 project(':service').projectDir = file('service')
@@ -34,7 +33,7 @@ project(':adapter-file').projectDir = file('adapter/file')
 project(':adapter-text').projectDir = file('adapter/text')
 project(':adapter-image').projectDir = file('adapter/image')
 project(':adapter-challenge').projectDir = file('adapter/challenge')
-project(':adapter-java').projectDir = file('adapter/java8')
+project(':adapter-java').projectDir = file('adapter/JavaAST')
 project(':adapter-python').projectDir = file('adapter/python')
 project(':adapter-cpp').projectDir = file('adapter/cpp')
 project(':adapter-runtime').projectDir = file('adapter/runtime')
