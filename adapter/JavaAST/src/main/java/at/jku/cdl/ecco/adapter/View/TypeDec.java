@@ -47,8 +47,8 @@ public class TypeDec extends AbstractNodeWithNestedNodes {
     @Override
     public VBox getCellContent() {
         VBox content = setUpVBox();
-
-        Label signature = setupLabel(text);
+        String signatureText = text.substring(0,text.length()-1); // removes the last }
+        Label signature = setupLabel(signatureText);
         content.getChildren().add(signature);
 
         for (int i = 0; i < childInterfaces.size(); i++) {

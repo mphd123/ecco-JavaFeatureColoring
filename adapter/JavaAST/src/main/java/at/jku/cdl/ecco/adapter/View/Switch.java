@@ -33,7 +33,9 @@ public class Switch extends AbstractNodeWithNestedNodes {
             }
 
             Statement switchEntry = new Statement(node, nodeToHighlight,javaViewer.getColorForNode(node),childDepth);
-            switchEntry.setText("case " + switchEntry.getText() + ":");
+            if (switchEntry.getText().startsWith("DEFAULT")) {
+                switchEntry.setText("default :");
+            } else switchEntry.setText("case " + switchEntry.getText() + ":");
             childInterfaces.add(switchEntry);
             switchEntries.put(switchEntry,entryStatements);
         }

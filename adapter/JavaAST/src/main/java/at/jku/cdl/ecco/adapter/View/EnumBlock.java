@@ -10,7 +10,7 @@ public class EnumBlock extends AbstractNodeWithNestedNodes {
         super(javaTypeDecNode, nodeToHighlight, javaViewer, depth);
         parseChildren();
         Statement lastStatement = (Statement) childInterfaces.getLast();
-        lastStatement.setText(lastStatement.getText().substring(0, lastStatement.getText().length() - 2));
+        lastStatement.setText(lastStatement.getText().substring(0, lastStatement.getText().length() - 1));
         text = text.substring(0,text.length() - 3); // remove the unnecessary {} that is added since they are done with labels
     }
 

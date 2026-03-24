@@ -18,9 +18,7 @@ public class GenericNestedNode extends AbstractNodeWithNestedNodes {
 
 
     public static JavaBlockInterface getBlock(JavaASTData childData, Node node, Node nodeToHighlight,int childDepth,JavaViewer javaViewer) {
-        if(childData.getType().equals(ASTNodeType.STATEMENT)) {
-           return new Statement(node, nodeToHighlight,javaViewer.getColorForNode(node),childDepth);
-        }else if (childData.getType().equals(ASTNodeType.SWITCH_STATEMENT)){
+        if (childData.getType().equals(ASTNodeType.SWITCH_STATEMENT)){
             return new Switch(node, nodeToHighlight,javaViewer,childDepth);
         }else if (childData.getType().equals(ASTNodeType.IF_STATEMENT)){
             return new IfBlock(node, nodeToHighlight,javaViewer,childDepth);
@@ -28,8 +26,15 @@ public class GenericNestedNode extends AbstractNodeWithNestedNodes {
         return new TryBlock(node, nodeToHighlight,javaViewer,childDepth);
         }
         else if(!node.getChildren().isEmpty() ) {
+            if (childData.getType().equals(ASTNodeType.STATEMENT) && node.getArtifact().getData() instanceof JavaASTData data &&  data.toString().startsWith("do")) {
+                return new DoWhileBlock(node, nodeToHighlight,javaViewer,childDepth);
+            }
             return new GenericNestedNode(node, nodeToHighlight,javaViewer,childDepth);
+        } // statemnt after checking if node has children since for loops have the type statement
+        else  if(childData.getType().equals(ASTNodeType.STATEMENT)) {
+            return new Statement(node, nodeToHighlight,javaViewer.getColorForNode(node),childDepth);
         }
+
         return new ErrorNode(node);
     }
 }

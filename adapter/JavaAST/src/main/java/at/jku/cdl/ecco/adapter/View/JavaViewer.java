@@ -30,7 +30,7 @@ public class JavaViewer extends BorderPane implements AssociationInfoArtifactVie
     private final HashMap<String, AssociationInfo> associationInfos;
     private final HashMap<String, PropertyChangeListener> associationListeners ;
     private ObservableList<JavaBlockInterface> javaBlocks = FXCollections.observableArrayList();
-    ListView<JavaBlockInterface> listView;
+    public ListView<JavaBlockInterface> listView;
 
     public static Border highlightBorder = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));;
 

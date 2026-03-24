@@ -38,7 +38,7 @@ public abstract class AbstractNodeWithNestedNodes extends AbstractJavaNode {
         sb.append(getIndentation());
 
 
-        sb.append(text).append(" {");
+        sb.append(text.substring(0,text.length()-1)).append(" {"); // substring to remove the ; that is appended after )
         Label signature = setupLabel(sb.toString());
         content.getChildren().add(signature);
 
