@@ -43,6 +43,6 @@ project(':adapter-golang').projectDir = file('adapter/golang')
 project(':adapter-c').projectDir = file('adapter/c')
 
 
-project(':adapter-designspace').projectDir = file('adapter/designspace')
+//project(':adapter-designspace').projectDir = file('adapter/designspace')
 
 rootProject.children.each { it.name = rootProject.name + '-' + it.name }

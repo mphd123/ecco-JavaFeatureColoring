@@ -217,10 +217,10 @@ public class ViewerColorTest extends AbstractFxTest {
                         0: signatureLabel
                         1: VBox. Vbox(FieldGroup).VBox .label of the two Fields (first is feature one second is feature two  )
                         3: Vbox of the constructor with Label(signature) Vbox(content) label(})
-                        3.1 is signature 3.2 VBox with label feature 1 3.3 Vbox with label feature 2 3.4 is label with closing bracket
+                        3.1 is signature 3.2 VBox with label feature 1 3.3 Vbox with label feature 3 3.4 is label with closing bracket
 
                         5: Vbox of main method
-                        3.1 is signature 3.2 VBox with label feature 1 3.3 Vbox with label feature 1 3.4 is label with closing bracket
+                        5.1 is signature 5.2 VBox with label feature 1 5.3 Vbox with label feature 3 5.4 is label with closing bracket
 
                         7: Vbox of method for feature two
                         Rest are spacing Labels

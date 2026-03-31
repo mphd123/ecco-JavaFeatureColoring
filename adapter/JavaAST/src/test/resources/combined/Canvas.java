@@ -7,9 +7,7 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.JComponent;
 
-
 import java.awt.Point;
-
 
 @SuppressWarnings("serial")
 @SuppressWarnings("test")
