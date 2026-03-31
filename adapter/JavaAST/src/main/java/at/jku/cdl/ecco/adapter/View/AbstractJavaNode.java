@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public abstract class AbstractJavaNode implements JavaBlockInterface{
-    protected final static Color defaultColor = Color.WHITE;
+    public final static Color defaultColor = Color.WHITE;
     protected final Node node;
     protected final Node nodeToHighlight;
     protected final Association association;

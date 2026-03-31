@@ -17,7 +17,7 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ViewerTest {
+public class ViewerTest extends AbstractFxTest {
 
     private JavaASTReader reader;
     private final Path base =  Paths.get("src","test", "resources").toAbsolutePath();
@@ -105,6 +105,13 @@ public class ViewerTest {
         testFileTextEqual(inputFile);
     }
 
+    @Test
+    public void NestedTest()
+    {
+        Path inputFile = Paths.get("combined","NestedTest.java");
+        testFileTextEqual(inputFile);
+    }
+
 
 
     private void testFileTextEqual (Path inputFile)
@@ -162,9 +169,5 @@ public class ViewerTest {
         return returnString;
     }
 
-    // https://stackoverflow.com/questions/45109876/toolkit-not-initialized-exception-when-unit-testing-an-javafx-application
-    @BeforeAll
-    static void initJfxRuntime() {
-        Platform.startup(() -> {});
-    }
+
 }
