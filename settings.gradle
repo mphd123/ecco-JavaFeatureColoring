@@ -20,7 +20,13 @@ include 'adapter-c'
 include 'adapter-cpp'
 include 'adapter-runtime'
 include 'adapter-golang'
-include 'adapter-designSpace'
+include 'adapter-designspace'
+project(':adapter-designspace').projectDir = file('adapter/designspaceV5')
+
+
+
+include 'serviceDesignSpace'
+project(':serviceDesignSpace').projectDir = file('serviceDesignSpace')
 
 
 project(':base').projectDir = file('base')

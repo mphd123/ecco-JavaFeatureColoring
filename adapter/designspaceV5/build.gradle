@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+// this fixes an error regarding pmd and a jar file
+
+tasks.withType(Pmd) {
+    classpath = files()
+}
+
+
+
+group = 'at.jku.isse.ecco'
+version = '0.1.9'
+ecco.adapter = true
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation("at.jku.isse.designspace:core:5.0")
+
+
+    testImplementation platform('org.junit:junit-bom:5.10.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation "org.mockito:mockito-core:5.8.0"
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

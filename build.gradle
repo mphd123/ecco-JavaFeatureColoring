@@ -12,6 +12,9 @@ allprojects {
 	pmd {
 		ignoreFailures = true
 	}
+
+	// to try and fix an issue when service needs designsapce
+
 }
 
 subprojects {

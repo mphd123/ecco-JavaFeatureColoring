@@ -1876,7 +1876,7 @@ public class EccoService implements ProgressInputStream.ProgressListener, Progre
      * @param configuration Configuration to be composed.
      * @return Checkout with composed artifacts.
      */
-    private synchronized Checkout compose(Configuration configuration) {
+    protected synchronized Checkout compose(Configuration configuration) {
         this.checkInitialized();
         checkNotNull(configuration);
         Repository.Op repository = this.repositoryDao.load();
@@ -1924,7 +1924,7 @@ public class EccoService implements ProgressInputStream.ProgressListener, Progre
     }
 
     // TODO: check if 'compareArtifacts' is proper name for method (fires association-selected events and returns artifact nodes)
-    private synchronized Set<Node> compareArtifacts(Checkout checkout) {
+    protected synchronized Set<Node> compareArtifacts(Checkout checkout) {
         for (Association selectedAssociation : checkout.getSelectedAssociations()) {
             this.fireAssociationSelectedEvent(selectedAssociation);
         }

@@ -1,0 +1,28 @@
+apply plugin: 'java-library'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+// this fixes an error regarding pmd and a jar file
+tasks.withType(Pmd) {
+	classpath = files()
+}
+
+dependencies {
+
+	implementation project(':ecco-service')
+
+	// just for testing added this as its own since having the desginspace library seemed to cause issues in the file adapter
+	implementation("at.jku.isse.designspace:core:5.0")
+
+	api 'com.google.inject:guice:7.0.0'
+	api 'com.google.inject.extensions:guice-multibindings:4.2.3'
+
+}
+
+// https://stackoverflow.com/questions/67265308/gradle-entry-classpath-is-a-duplicate-but-no-duplicate-handling-strategy-has-b
+jar {
+	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
