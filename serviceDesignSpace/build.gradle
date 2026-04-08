@@ -12,10 +12,16 @@ tasks.withType(Pmd) {
 
 dependencies {
 
-	implementation project(':ecco-service')
+
 
 	// just for testing added this as its own since having the desginspace library seemed to cause issues in the file adapter
 	implementation("at.jku.isse.designspace:core:5.0")
+
+
+	implementation project(':ecco-service')
+	implementation project(':ecco-adapter-designspace')
+
+
 
 	api 'com.google.inject:guice:7.0.0'
 	api 'com.google.inject.extensions:guice-multibindings:4.2.3'

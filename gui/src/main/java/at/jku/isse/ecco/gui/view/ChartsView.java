@@ -65,7 +65,7 @@ public class ChartsView extends BorderPane implements EccoListener {
 					final Map<Integer, Integer> modulesPerOrderMap = new TreeMap<>();
 					for (Association association : repository.getAssociations()) {
 						for (Module module : association.computeCondition().getModules().keySet()) {
-							//For the specified order -> If no order of this type is seen yet, it must be the first. Otherwise 1 is added to the old value
+							//For the specified order -> If no order of this type is seen yet, it must be the workspace. Otherwise 1 is added to the old value
 							modulesPerOrderMap.compute(module.getOrder(), (key, oldValue) -> oldValue == null ? 1 : oldValue + 1);
 						}
 					}

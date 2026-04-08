@@ -3,9 +3,11 @@ package at.jku.isse.ecco;
 
 import at.jku.isse.designspace.core.model.Change;
 import at.jku.isse.designspace.core.model.Element;
+import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
+import at.jku.isse.ecco.adapter.designspace.artifact.Pair;
 import at.jku.isse.ecco.core.Checkout;
 import at.jku.isse.ecco.feature.Configuration;
 import at.jku.isse.ecco.service.EccoService;
@@ -18,9 +20,9 @@ import java.util.Set;
 public class DesignSpaceService extends EccoService {
 
     @Inject
-    private Set<ArtifactReader<Workspace, Set<Node.Op>>> readers;
+    private Set<ArtifactReader<Pair, Set<Node.Op>>> readers;
 
-    private ArtifactReader<Workspace, Set<Node.Op>> reader;
+    private ArtifactReader<Pair, Set<Node.Op>> reader;
 
     @Inject
     private Set<ArtifactWriter<Set<Node>, HashMap<Long, Element>>> writers;
@@ -35,11 +37,21 @@ public class DesignSpaceService extends EccoService {
         this.workspace = workspace;
     }
 
-    Workspace workspace;
+    private Workspace workspace;
+
+    public Folder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(Folder folder) {
+        this.folder = folder;
+    }
+
+    private Folder folder;
 
     @Override
     public synchronized Set<Node.Op> readFiles() {
-        return this.reader.read(workspace,null);
+        return this.reader.read(new Pair(workspace,folder),null);
     }
 
     public synchronized void open(){
@@ -53,7 +65,6 @@ public class DesignSpaceService extends EccoService {
         writer = writers.stream().findFirst().get();
 
     }
-
 
     public synchronized HashMap<Long, Element>[] checkoutDesignspace(String  configurationString) {
         Configuration configuration = parseConfigurationString(configurationString);
