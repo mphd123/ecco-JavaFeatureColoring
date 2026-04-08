@@ -55,6 +55,7 @@ public class InstanceTypeArtefact implements ArtifactData {
                 // need to support handle supertypes
                 // todo and handle the id reassignment at the end
                 instanceType = InstanceType.CREATE(workspace,artefact.getName());
+                writerTypeManager.newToOriginalId.put(instanceType.getId(), artefact.getId());
                 writerTypeManager.instanceTypeMap.put(artefact.id, instanceType);
             }
 

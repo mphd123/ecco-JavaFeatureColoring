@@ -1,13 +1,11 @@
 package at.jku.isse.ecco;
 
 
-import at.jku.isse.designspace.core.model.Change;
-import at.jku.isse.designspace.core.model.Element;
 import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
-import at.jku.isse.ecco.adapter.designspace.artifact.Pair;
+import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.core.Checkout;
 import at.jku.isse.ecco.feature.Configuration;
 import at.jku.isse.ecco.service.EccoService;
@@ -20,14 +18,14 @@ import java.util.Set;
 public class DesignSpaceService extends EccoService {
 
     @Inject
-    private Set<ArtifactReader<Pair, Set<Node.Op>>> readers;
+    private Set<ArtifactReader<DesignSpaceInfo, Set<Node.Op>>> readers;
 
-    private ArtifactReader<Pair, Set<Node.Op>> reader;
+    private ArtifactReader<DesignSpaceInfo, Set<Node.Op>> reader;
 
     @Inject
-    private Set<ArtifactWriter<Set<Node>, Pair>> writers;
+    private Set<ArtifactWriter<Set<Node>, DesignSpaceInfo>> writers;
 
-    private ArtifactWriter<Set<Node>, Pair> writer;
+    private ArtifactWriter<Set<Node>, DesignSpaceInfo> writer;
 
     public Workspace getWorkspace() {
         return workspace;
@@ -51,13 +49,12 @@ public class DesignSpaceService extends EccoService {
 
     @Override
     public synchronized Set<Node.Op> readFiles() {
-        return this.reader.read(new Pair(workspace,folder),null);
+        return this.reader.read(new DesignSpaceInfo(workspace,folder,null),null);
     }
 
     public synchronized void open(){
         super.open();
         initAdapter();
-
     }
 
     private void initAdapter(){
@@ -66,12 +63,13 @@ public class DesignSpaceService extends EccoService {
 
     }
 
-    public synchronized void checkoutDesignspace(String  configurationString) {
+    public synchronized Checkout checkoutDesignspace(String  configurationString,HashMap<Long,Long> newToOriginalId) {
         Configuration configuration = parseConfigurationString(configurationString);
         Checkout checkout = compose(configuration);
 
         Set<Node> nodes = compareArtifacts(checkout);
-        this.writer.write(new Pair(workspace,folder), nodes);
+        this.writer.write(new DesignSpaceInfo(workspace,folder, newToOriginalId), nodes);
+        return checkout;
 
     }
 

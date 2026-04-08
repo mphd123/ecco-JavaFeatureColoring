@@ -57,7 +57,7 @@ public class InstanceArtefact implements ArtifactData {
             InstanceType  instanceType = writerTypeManager.instanceTypeMap.get(artefact.getInstanceTypeId());
             if(instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
             Instance instance = Instance.CREATE(workspace, instanceType,artefact.getName(),folder);
-
+            writerTypeManager.newToOriginalId.put(instance.getId(), artefact.getId());
 
             for (Node propertyTypeNode : instanceNode.getChildren()){
                     //PropertyArtefact.build(workspace,folder,propertyTypeNode,writerTypeManager);

@@ -4,6 +4,7 @@ import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
@@ -13,7 +14,7 @@ import com.google.inject.Inject;
 import java.util.*;
 
 
-public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
+public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
@@ -35,7 +36,7 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
     }
 
     @Override
-    public Set<Node.Op> read(Pair base, Pair[] input) {
+    public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
         instanceTypeNodes = new HashMap<>();
         Workspace workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
@@ -143,7 +144,7 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
     }
 
     @Override
-    public Set<Node.Op> read(Pair[] input) {
+    public Set<Node.Op> read(DesignSpaceInfo[] input) {
         return read(input[0],input);
     }
 

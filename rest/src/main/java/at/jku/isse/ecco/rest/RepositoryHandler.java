@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Holds {@see EccoService} with one Repository
- * EccoService gets initialized at first usage of the Repository.
+ * EccoService gets initialized at workspace usage of the Repository.
  * Each Repository has its own EccoService for Multi user support and performance (loading Repository takes some time)
  */
 public class RepositoryHandler {

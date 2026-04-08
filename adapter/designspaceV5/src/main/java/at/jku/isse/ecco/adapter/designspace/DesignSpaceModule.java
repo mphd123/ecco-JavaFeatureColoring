@@ -1,10 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace;
 
-import at.jku.isse.designspace.core.model.Element;
-import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.*;
-import at.jku.isse.ecco.adapter.designspace.artifact.Pair;
+import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.tree.*;
 import com.google.inject.*;
 import com.google.inject.multibindings.*;
@@ -21,7 +18,7 @@ public class DesignSpaceModule extends AbstractModule {
     protected void configure() {
         super.configure();
 
-        final Multibinder<ArtifactReader<Pair, Set<Node.Op>>> readerMultibinder =
+        final Multibinder<ArtifactReader<DesignSpaceInfo, Set<Node.Op>>> readerMultibinder =
                 Multibinder.newSetBinder(
                         binder(),
                         new TypeLiteral<>() {
@@ -29,7 +26,7 @@ public class DesignSpaceModule extends AbstractModule {
 
         readerMultibinder.addBinding().to(WorkSpaceReaderNode.class);
 
-        final Multibinder<ArtifactWriter<Set<Node>, Pair>> writerMultibinder =
+        final Multibinder<ArtifactWriter<Set<Node>, DesignSpaceInfo>> writerMultibinder =
                 Multibinder.newSetBinder(
                         binder(),
                         new TypeLiteral<>() {

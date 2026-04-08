@@ -9,11 +9,16 @@ public class WriterTypeManager {
     public final Map<Long, InstanceType> instanceTypeMap;
     public final Map<Long, PropertyType> propertyTypeMap;
 
+    public final Map<Long,Long> newToOriginalId;
+
     public WriterTypeManager() {
 
         LanguageWorkspace workspace = LanguageWorkspace.ROOT;
-        this.instanceTypeMap = new HashMap<>();
-        this.propertyTypeMap = new HashMap<>();
+        instanceTypeMap = new HashMap<>();
+        propertyTypeMap = new HashMap<>();
+        newToOriginalId = new HashMap<>();
+
+
         Set<LanguageWorkspace> languageWorkspaces = getAlllanguageWorkspaces();
 
 

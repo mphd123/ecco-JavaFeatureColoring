@@ -1,7 +1,6 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
 import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.designspace.util.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
@@ -12,7 +11,6 @@ import at.jku.isse.ecco.tree.Node;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 
 public class FolderArtefact implements ArtifactData {
@@ -50,6 +48,7 @@ public class FolderArtefact implements ArtifactData {
     public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
         if(folderNode.getArtifact().getData() instanceof FolderArtefact folderArtefact){
             Folder folder = Folder.CREATE(folderArtefact.getName(),workspace.its(parentFolder));
+
 
             Node typesNode = folderNode.getChildren().get(importantNodes.Types.ordinal());
             for (Node type : typesNode.getChildren()){
