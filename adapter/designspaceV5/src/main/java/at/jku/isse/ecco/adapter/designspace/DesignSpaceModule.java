@@ -29,12 +29,12 @@ public class DesignSpaceModule extends AbstractModule {
 
         readerMultibinder.addBinding().to(WorkSpaceReaderNode.class);
 
-        final Multibinder<ArtifactWriter<Set<Node>, HashMap<Long, Element>>> writerMultibinder =
+        final Multibinder<ArtifactWriter<Set<Node>, Pair>> writerMultibinder =
                 Multibinder.newSetBinder(
                         binder(),
                         new TypeLiteral<>() {
                         });
 
-        writerMultibinder.addBinding().to(ChangeWriter.class);
+        writerMultibinder.addBinding().to(WorkSpaceWriter.class);
     }
 }

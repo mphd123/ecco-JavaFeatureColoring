@@ -1,8 +1,14 @@
-package at.jku.isse.ecco.adapter.designspace.artifact;
+package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.foundation.Key;
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.adapter.designspace.artifact.SimpleValueArtifact;
+import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
+import at.jku.isse.ecco.adapter.designspace.artifact.ValueArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
+import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
@@ -45,22 +51,27 @@ public class PropertyArtefact implements ArtifactData {
     public static void setupNode (PropertyArtefact artefact, Node.Op InstanceNode, EntityFactory entityFactory, Property property){
         switch (artefact.getCardinality()){
             case SINGLE:
+
                 Node.Op single = entityFactory.createNode(artefact);
                 InstanceNode.addChild(single);
+                addValueNode(single, property,entityFactory);
 
                 break;
             case LIST:
                 Node.Op listNode = entityFactory.createOrderedNode(artefact);
+                InstanceNode.addChild(listNode);
                 addListValueNodes(listNode,(ListProperty) property,entityFactory);
                 break;
 
             case SET:
                 Node.Op setNode = entityFactory.createNode(artefact);
+                InstanceNode.addChild(setNode);
                 addSetNodes(setNode,(SetProperty) property, entityFactory );
                 break;
 
             case MAP:
                 Node.Op mapNode = entityFactory.createNode(artefact);
+                InstanceNode.addChild(mapNode);
                 addMapNodes(mapNode,(MapProperty) property, entityFactory);
                 break;
         }
@@ -101,5 +112,35 @@ public class PropertyArtefact implements ArtifactData {
         }else{
             propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
         }
+    }
+
+
+    public static void build(Workspace workspace, Instance instance, Node propertyTypeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
+        if(propertyTypeNode.getArtifact() instanceof PropertyArtefact artefact){
+            PropertyType propertyType = instance.getPropertyType(artefact.getName());
+            if (propertyType == null) {
+                // case does not have it
+                //instance.getInstanceType().createPropertyType(artefact.getName(),artefact.getCardinality(),)
+            }
+
+
+
+
+
+            for (Node property : propertyTypeNode.getChildren()){
+
+            }
+        }else {
+            throw new NodeWrongArtefact("wrong node passed it isnt a instancetypeNode");
+        }
+    }
+
+    public static void buildSingle(Workspace workspace, Instance instance, Node propertyTypeNode, PropertyType propertyType,WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
+        Node valueNode = propertyTypeNode.getChildren().get(0);
+        if (valueNode.getArtifact() instanceof  ReferenceValueArtefact ref){
+
+        }
+            //WriterTypeManager.
+            //instance.set(propertyType,writerTypeManager.instanceTypeMap.get(ref.))
     }
 }

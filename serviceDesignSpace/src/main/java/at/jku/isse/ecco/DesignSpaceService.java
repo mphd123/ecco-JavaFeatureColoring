@@ -25,9 +25,9 @@ public class DesignSpaceService extends EccoService {
     private ArtifactReader<Pair, Set<Node.Op>> reader;
 
     @Inject
-    private Set<ArtifactWriter<Set<Node>, HashMap<Long, Element>>> writers;
+    private Set<ArtifactWriter<Set<Node>, Pair>> writers;
 
-    private ArtifactWriter<Set<Node>, HashMap<Long, Element>> writer;
+    private ArtifactWriter<Set<Node>, Pair> writer;
 
     public Workspace getWorkspace() {
         return workspace;
@@ -66,13 +66,12 @@ public class DesignSpaceService extends EccoService {
 
     }
 
-    public synchronized HashMap<Long, Element>[] checkoutDesignspace(String  configurationString) {
+    public synchronized void checkoutDesignspace(String  configurationString) {
         Configuration configuration = parseConfigurationString(configurationString);
         Checkout checkout = compose(configuration);
 
         Set<Node> nodes = compareArtifacts(checkout);
-        HashMap<Long, Element>[] elements = this.writer.write(null, nodes);
-        return elements;
+        this.writer.write(new Pair(workspace,folder), nodes);
 
     }
 

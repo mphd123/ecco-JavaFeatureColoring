@@ -3,6 +3,7 @@ package at.jku.isse.ecco.adapter.designspace;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
+import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
@@ -16,6 +17,7 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
+    // should be changed to local ones for the subfolders
 
     @Inject
     public WorkSpaceReaderNode(EntityFactory entityFactory) {
@@ -45,8 +47,8 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
     }
 
     private Node.Op handleFolder(Workspace workspace,Folder folder,Node.Op parentFolderNode){
-        Node.Op folderNode = entityFactory.createOrderedNode(new Fodlerartefact(folder.getName()));
-        Fodlerartefact.setUpFolderNode(folderNode,entityFactory);
+        Node.Op folderNode = entityFactory.createOrderedNode(new FolderArtefact(folder.getName()));
+        FolderArtefact.setUpFolderNode(folderNode,entityFactory);
 
         Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
         // instances contains other instances from other workspaces
@@ -83,13 +85,25 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
             for (Folder childFolder : children) {
                 Node.Op childFolderNode = handleFolder(workspace,childFolder,folderNode);
                 if (parentFolderNode != null) {
-                    Node.Op subFolders = parentFolderNode.getChildren().get(Fodlerartefact.ImportnatNodes.SubFolders.ordinal());
+                    Node.Op subFolders = parentFolderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
                     subFolders.addChild(childFolderNode);
                 }
             }
         }
 
         return folderNode;
+    }
+
+    private void handleInstanceType(Workspace workspace, Folder parentFolder, Node.Op parentNode,InstanceType instanceType){
+        Node.Op typeNode = parentNode.getChildren().get(FolderArtefact.importantNodes.Types.ordinal());
+
+        instanceType = workspace.its(instanceType);
+
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),instanceType.getId())); // check if should be ordered
+        instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
+
+        typeNode.addChild(instanceTypeNode);
+
     }
 
     private void handleInstance(Workspace workspace, Folder parentFolder,Instance instance){
@@ -107,24 +121,11 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
         instanceTypeNode.addChild(instanceNode );
 
         Collection<PropertyType> propertyTypes = instanceType.getPropertyTypes();
-        handleProeperties(instance,instanceNode,propertyTypes);
-
-
+        // have to figure out how to recreate it
+        //handleProperties(instance,instanceNode,propertyTypes);
     }
 
-    private void handleInstanceType(Workspace workspace, Folder parentFolder, Node.Op parentNode,InstanceType instanceType){
-        Node.Op typeNode = parentNode.getChildren().get(Fodlerartefact.ImportnatNodes.Types.ordinal());
-
-        instanceType = workspace.its(instanceType);
-
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),instanceType.getId())); // check if should be ordered
-        instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
-
-        typeNode.addChild(instanceTypeNode);
-
-    }
-
-    private void handleProeperties( Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes){
+    private void handleProperties(Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes){
 
         for (PropertyType pt : propertyTypes) {
             Property property = instance.getProperty(pt);
