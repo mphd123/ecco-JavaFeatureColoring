@@ -19,7 +19,6 @@ public class FolderArtefact implements ArtifactData {
     private final String name;
     public final Collection<Integer> instantTypeIds;
 
-
     public FolderArtefact(String name) {
         this.name = name;
         instantTypeIds = new HashSet<>();

@@ -1,4 +1,4 @@
-at.jku.isse.ecco.adapter.java.JavaPlugin;**.java
+at.jku.cdl.ecco.adapter.JavaASTPlugin;**.java
 at.jku.isse.ecco.adapter.c.CPlugin;**.c
 at.jku.isse.ecco.adapter.c.CPlugin;**.h
 at.jku.isse.ecco.adapter.text.TextPlugin;**.txt

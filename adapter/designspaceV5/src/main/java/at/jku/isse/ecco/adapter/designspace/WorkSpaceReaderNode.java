@@ -39,11 +39,14 @@ public class WorkSpaceReaderNode implements ArtifactReader<Pair, Set<Node.Op>> {
         instanceTypeNodes = new HashMap<>();
         Workspace workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
+        Node.Op pluginNode = entityFactory.createNode(new StringArtefact("pluginNode"));
+        // hope this fixes an issue where when 2 features have different folders on checkout with both only one is returned
 
-        Node.Op rootFolderNode = handleFolder(workspace,commitFolder,null);
+        Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,null);
+        pluginNode.addChild(checkinFolderNode);
 
 
-        return Set.of(rootFolderNode);
+        return Set.of(pluginNode);
     }
 
     private Node.Op handleFolder(Workspace workspace,Folder folder,Node.Op parentFolderNode){

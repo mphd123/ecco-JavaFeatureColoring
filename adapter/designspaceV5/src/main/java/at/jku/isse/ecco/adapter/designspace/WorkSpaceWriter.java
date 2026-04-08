@@ -32,10 +32,12 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, Pair> {
         Workspace workspace = base.workspace();
         Folder checkoutFolder = workspace.its(base.folder());
         WriterTypeManager writerTypeManager = new WriterTypeManager();
+        Node pluginNode = input.stream().toList().get(0);
+
 
         try {
 
-        for (Node node : input){
+        for (Node node : pluginNode.getChildren()){
             if(node.getArtifact().getData() instanceof FolderArtefact){
                     FolderArtefact.buildFolder(workspace,checkoutFolder,node,writerTypeManager);
             }
