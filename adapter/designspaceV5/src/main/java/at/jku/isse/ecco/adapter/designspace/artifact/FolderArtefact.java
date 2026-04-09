@@ -15,11 +15,16 @@ import java.util.Objects;
 
 public class FolderArtefact implements ArtifactData {
     private final String name;
+
+
+
+    private final Long id;
     public final Collection<Integer> instantTypeIds;
 
-    public FolderArtefact(String name) {
+    public FolderArtefact(String name,Long id) {
         this.name = name;
         instantTypeIds = new HashSet<>();
+        this.id = id;
     }
 
     @Override
@@ -37,6 +42,10 @@ public class FolderArtefact implements ArtifactData {
 
     public String getName() {
         return name;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public static void setUpFolderNode(Node.Op folderNode, EntityFactory factory){

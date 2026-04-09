@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.core.Association;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ public class WriterTypeManager {
     public final Map<Long, PropertyType> propertyTypeMap;
 
     public final Map<Long,Long> newToOriginalId;
+    public final Map<Long, Association> originalIdToAssociation;
 
     public WriterTypeManager() {
 
@@ -17,9 +19,9 @@ public class WriterTypeManager {
         instanceTypeMap = new HashMap<>();
         propertyTypeMap = new HashMap<>();
         newToOriginalId = new HashMap<>();
+        originalIdToAssociation = new HashMap<>();
 
-
-        Set<LanguageWorkspace> languageWorkspaces = getAlllanguageWorkspaces();
+        Set<LanguageWorkspace> languageWorkspaces = getAllLanguageWorkspaces();
 
 
         Set<InstanceType> existingInstanceTypes =  languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getInstanceTypes().stream()).collect(Collectors.toSet());
@@ -34,7 +36,7 @@ public class WriterTypeManager {
         }
     }
 
-    private Set<LanguageWorkspace> getAlllanguageWorkspaces(){
+    private Set<LanguageWorkspace> getAllLanguageWorkspaces(){
         Set<LanguageWorkspace>  set = new HashSet<>();
         recusrivegetLeafWorkspaces(set,LanguageWorkspace.ROOT);
         return set;

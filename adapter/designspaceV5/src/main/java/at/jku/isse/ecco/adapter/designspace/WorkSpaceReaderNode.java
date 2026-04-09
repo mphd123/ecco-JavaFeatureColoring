@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace;
 
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
@@ -18,6 +19,7 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
+    IdMapper idMapper;
     // should be changed to local ones for the subfolders
 
     @Inject
@@ -40,88 +42,78 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
         instanceTypeNodes = new HashMap<>();
         Workspace workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
-        Node.Op pluginNode = entityFactory.createNode(new StringArtefact("pluginNode"));
-        // hope this fixes an issue where when 2 features have different folders on checkout with both only one is returned
-
+        idMapper = new IdMapper(new HashMap<>(), new HashMap<>());
         Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,null);
-        pluginNode.addChild(checkinFolderNode);
-
-
-        return Set.of(pluginNode);
+        return Set.of(checkinFolderNode);
     }
 
     private Node.Op handleFolder(Workspace workspace,Folder folder,Node.Op parentFolderNode){
-        Node.Op folderNode = entityFactory.createOrderedNode(new FolderArtefact(folder.getName()));
+        Node.Op folderNode = entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
         FolderArtefact.setUpFolderNode(folderNode,entityFactory);
+        try {
+            Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
 
-        Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
-        // instances contains other instances from other workspaces
+            // instances contains other instances from other workspaces
+            HashSet<InstanceType> addedInstanceTypes = new HashSet<>();
+            if (instances != null) {
+                for (Instance instance : instances){
+                    // skip if the instance is not from another workspace
+                    // check if this is okay as otherwise duplicated instances would be added to the instancetypes
+                    if(! instance.getWorkspace().equals(workspace)) continue;
 
-        HashSet<InstanceType> addedInstanceTypes = new HashSet<>();
+                    InstanceType instanceType = instance.getInstanceType();
+                    if (instanceType == null) continue;
+                    instanceType = workspace.its(instanceType);
+                    if (instanceType == null) continue;
 
-        if (instances != null) {
-            for (Instance instance : instances){
-                // skip if the instance is not from another workspace
-                // check if this is okay as otherwise duplicated instances would be added to the instancetypes
-                if(! instance.getWorkspace().equals(workspace)) continue;
+                    if(!addedInstanceTypes.contains(instanceType)){
+                        addedInstanceTypes.add(instanceType);
+                        handleInstanceType(workspace,folderNode,instanceType);
+                    }
 
-                InstanceType instanceType = instance.getInstanceType();
-                if (instanceType == null) continue;
-                instanceType = workspace.its(instanceType);
-                if (instanceType == null) continue;
-
-                if(!addedInstanceTypes.contains(instanceType)){
-                    addedInstanceTypes.add(instanceType);
-                    handleInstanceType(workspace,folder,folderNode,instanceType);
+                    Instance workspaceInstance = workspace.its(instance);
+                    if (workspaceInstance != null) {
+                        handleInstance(workspace,workspaceInstance);
+                    }
                 }
-
-
-                Instance workspaceInstance = workspace.its(instance);
-                if (workspaceInstance != null) {
-                    handleInstance(workspace,folder,workspaceInstance);
-                }
+                handleSubFolders(folder,folderNode,workspace);
+                parentFolderNode.addChild(folderNode);
             }
+        } catch (Exception e) {
+            System.err.println("an error happened while reading from the folders error message  " +e);
         }
 
-        Collection<Folder> children = folder.getSubFolders();
-
-        if (children != null) {
-            for (Folder childFolder : children) {
-                Node.Op childFolderNode = handleFolder(workspace,childFolder,folderNode);
-                if (parentFolderNode != null) {
-                    Node.Op subFolders = parentFolderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
-                    subFolders.addChild(childFolderNode);
-                }
-            }
-        }
 
         return folderNode;
     }
 
-    private void handleInstanceType(Workspace workspace, Folder parentFolder, Node.Op parentNode,InstanceType instanceType){
-        Node.Op typeNode = parentNode.getChildren().get(FolderArtefact.importantNodes.Types.ordinal());
 
-        instanceType = workspace.its(instanceType);
-
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),instanceType.getId())); // check if should be ordered
-        instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
-
-        typeNode.addChild(instanceTypeNode);
-
+    private void handleSubFolders(Folder folder,Node.Op folderNode, Workspace workspace) {
+        Collection<Folder> children = folder.getSubFolders();
+        if (children != null) {
+            for (Folder childFolder : children) {
+                Node.Op childFolderNode = handleFolder(workspace,childFolder,folderNode);
+                Node.Op subFolders = folderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
+                subFolders.addChild(childFolderNode);
+            }
+        }
     }
 
-    private void handleInstance(Workspace workspace, Folder parentFolder,Instance instance){
+    private void handleInstanceType(Workspace workspace, Node.Op parentNode,InstanceType instanceType){
+        Node.Op typeNode = parentNode.getChildren().get(FolderArtefact.importantNodes.Types.ordinal());
+        instanceType = workspace.its(instanceType);
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()))); // check if should be ordered
+        instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
+        typeNode.addChild(instanceTypeNode);
+    }
 
-
+    private void handleInstance(Workspace workspace,Instance instance){
         instance = workspace.its(instance);
-
         InstanceType instanceType = instance.getInstanceType();
         instanceType = workspace.its(instanceType);
-
         if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
         Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
-
-        Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(),instance.getId(),instanceType.getId()));
+        Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
         instanceTypeNode.addChild(instanceNode );
 
         Collection<PropertyType> propertyTypes = instanceType.getPropertyTypes();
@@ -137,7 +129,6 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
                     !property.getName().equals("name")) {
-
                 PropertyArtefact.setupNode(new PropertyArtefact(property.getName(), pt.getCardinality()),instanceNode,entityFactory,property);
             }
         }
@@ -150,7 +141,6 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
 
     @Override
     public void addListener(ReadListener listener) {
-
     }
 
     @Override
