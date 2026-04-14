@@ -118,18 +118,22 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
         Collection<PropertyType> propertyTypes = instanceType.getPropertyTypes();
         // have to figure out how to recreate it
-        //handleProperties(instance,instanceNode,propertyTypes);
+        handleProperties(instance,instanceNode,propertyTypes);
     }
 
     private void handleProperties(Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes){
 
         for (PropertyType pt : propertyTypes) {
+            if (pt instanceof  InitPropertyType) continue;
+            // currently not sure how to handle
+
             Property property = instance.getProperty(pt);
+
             if (property.getName() != null &&
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
                     !property.getName().equals("name")) {
-                PropertyArtefact.setupNode(new PropertyArtefact(property.getName(), pt.getCardinality()),instanceNode,entityFactory,property);
+                PropertyArtefact.setupNode(new PropertyArtefact(property.getId(), property.getName(), pt.getCardinality()),instanceNode,entityFactory,property);
             }
         }
     }

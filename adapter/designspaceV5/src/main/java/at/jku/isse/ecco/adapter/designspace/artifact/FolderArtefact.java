@@ -8,6 +8,7 @@ import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
+import jdk.jshell.spi.ExecutionControl;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -54,7 +55,7 @@ public class FolderArtefact implements ArtifactData {
     }
 
 
-    public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
+    public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
         if(folderNode.getArtifact().getData() instanceof FolderArtefact folderArtefact){
             Folder folder = Folder.CREATE(folderArtefact.getName(),workspace.its(parentFolder));
 

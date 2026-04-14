@@ -12,18 +12,24 @@ import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
+import jdk.jshell.spi.ExecutionControl;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 
 public class PropertyArtefact implements ArtifactData {
+
+
+
+    private final Long id;
 
     private final String name;
     private final Cardinality cardinality;
 
 
-    public PropertyArtefact(String name, Cardinality cardinality) {
+    public PropertyArtefact(Long id, String name, Cardinality cardinality) {
+        this.id = id;
         this.name = name;
         this.cardinality = cardinality;
     }
@@ -44,6 +50,10 @@ public class PropertyArtefact implements ArtifactData {
         return name;
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public Cardinality getCardinality() {
         return cardinality;
     }
@@ -54,7 +64,7 @@ public class PropertyArtefact implements ArtifactData {
 
                 Node.Op single = entityFactory.createNode(artefact);
                 InstanceNode.addChild(single);
-                addValueNode(single, property,entityFactory);
+                addValueNode(single, property.get(),entityFactory);
 
                 break;
             case LIST:
@@ -88,25 +98,26 @@ public class PropertyArtefact implements ArtifactData {
     }
 
     private static void addSetNodes(Node.Op propertyNode, SetProperty property, EntityFactory entityFactory){
-        HashSet<Object> set = new HashSet<>();
         for (Object value: property.get()){
-            if (set.add(value))addValueNode(propertyNode,value,entityFactory);
+           addValueNode(propertyNode,value,entityFactory);
 
         }
     }
 
     private static void addMapNodes(Node.Op propertyNode, MapProperty property, EntityFactory entityFactory){
-        HashMap<Key, Object> map = new HashMap<>();
+        Map map = property.get();
         for (Object key: map.keySet()){
             Object value = map.get(key);
-            String keyString = key.toString();
 
-            Node.Op keyNode = entityFactory.createNode(new StringArtefact(keyString));
+            Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getKey()));
             addValueNode(keyNode,value,entityFactory);
+
+            propertyNode.addChild(keyNode);
         }
     }
 
     private static void addValueNode(Node.Op propertyNode, Object value,EntityFactory entityFactory){
+
         if (value instanceof Instance instanceValue) {
             propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact(instanceValue.getId(), instanceValue.getName())));
         }else{
@@ -114,33 +125,63 @@ public class PropertyArtefact implements ArtifactData {
         }
     }
 
-
-    public static void build(Workspace workspace, Instance instance, Node propertyTypeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
-        if(propertyTypeNode.getArtifact() instanceof PropertyArtefact artefact){
+    // isntead of having cardinalities create seperate classes that handle the building on their own
+    public static void build(Instance instance, Node propertyNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
+        if(propertyNode.getArtifact().getData() instanceof PropertyArtefact artefact){
             PropertyType propertyType = instance.getPropertyType(artefact.getName());
             if (propertyType == null) {
                 // case does not have it
                 //instance.getInstanceType().createPropertyType(artefact.getName(),artefact.getCardinality(),)
+                throw new  ExecutionControl.NotImplementedException("creating Types is currently not implemented");
+            }
+
+            switch (artefact.getCardinality()){
+                case SINGLE:
+                    Node valueNode = propertyNode.getChildren().get(0);
+                    instance.set(propertyType,getValueArtefact(valueNode).getValue());
+                    break;
+                case LIST:
+                case SET:
+                    buildSetList(instance,propertyNode,propertyType,writerTypeManager);
+                    break;
+                case MAP:
+                    buildMap(instance,propertyNode,propertyType,writerTypeManager);
+                    break;
             }
 
 
-
-
-
-            for (Node property : propertyTypeNode.getChildren()){
-
-            }
         }else {
             throw new NodeWrongArtefact("wrong node passed it isnt a instancetypeNode");
         }
     }
 
-    public static void buildSingle(Workspace workspace, Instance instance, Node propertyTypeNode, PropertyType propertyType,WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
-        Node valueNode = propertyTypeNode.getChildren().get(0);
-        if (valueNode.getArtifact() instanceof  ReferenceValueArtefact ref){
-
+    public static void buildSetList(Instance instance, Node propertyNode, PropertyType propertyType, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
+        for (Node valueNode : propertyNode.getChildren()) {
+            ValueArtefact valueArtefact = getValueArtefact(valueNode);
+            instance.add(propertyType,valueArtefact.getValue());
         }
-            //WriterTypeManager.
-            //instance.set(propertyType,writerTypeManager.instanceTypeMap.get(ref.))
+    }
+
+
+    public static void buildMap(Instance instance, Node propertyNode, PropertyType propertyType, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
+        for (Node keyNode : propertyNode.getChildren()) {
+            ValueArtefact keyArtefact = getValueArtefact(keyNode);
+            ValueArtefact valueArtefact = getValueArtefact(keyNode.getChildren().get(0));
+            if (keyArtefact.getValue() instanceof String keyString) {
+                instance.add(propertyType,Key.of(keyString),valueArtefact.getValue());
+            }else throw new NodeWrongArtefact("the keyNode should have a value of type Key");
+        }
+    }
+
+
+
+    private static  ValueArtefact getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+        if (valueNode.getArtifact().getData() instanceof ReferenceValueArtefact) {
+            throw new  ExecutionControl.NotImplementedException("references");
+        }else if (valueNode.getArtifact().getData() instanceof ValueArtefact valueartefact) {
+            return valueartefact;
+        } else {
+            throw new NodeWrongArtefact(" wrong artefact for value");
+        }
     }
 }

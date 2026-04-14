@@ -8,6 +8,7 @@ import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
+import jdk.jshell.spi.ExecutionControl;
 
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +42,7 @@ public class InstanceTypeArtefact implements ArtifactData {
         return id;
     }
 
-    public static void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException {
+    public static void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
         if(typeNode.getArtifact().getData() instanceof InstanceTypeArtefact artefact){
             InstanceType instanceType;
             if(writerTypeManager.instanceTypeMap.containsKey(artefact.getId())){
