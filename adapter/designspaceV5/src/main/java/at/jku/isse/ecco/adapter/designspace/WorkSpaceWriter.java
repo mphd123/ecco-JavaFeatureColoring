@@ -29,8 +29,6 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
         Folder checkoutFolder = workspace.its(base.folder());
         WriterTypeManager writerTypeManager = new WriterTypeManager();
         Node pluginNode = input.stream().toList().get(0);
-
-
         try {
 
         for (Node node : pluginNode.getChildren()){

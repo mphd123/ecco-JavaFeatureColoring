@@ -24,7 +24,7 @@ public class DesignSpaceModule extends AbstractModule {
                         new TypeLiteral<>() {
                         });
 
-        readerMultibinder.addBinding().to(WorkSpaceReaderNode.class);
+        readerMultibinder.addBinding().to(WorkSpaceReader.class);
 
         final Multibinder<ArtifactWriter<Set<Node>, DesignSpaceInfo>> writerMultibinder =
                 Multibinder.newSetBinder(

@@ -15,7 +15,7 @@ import com.google.inject.Inject;
 import java.util.*;
 
 
-public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
+public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
@@ -23,7 +23,7 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
     // should be changed to local ones for the subfolders
 
     @Inject
-    public WorkSpaceReaderNode(EntityFactory entityFactory) {
+    public WorkSpaceReader(EntityFactory entityFactory) {
         this.entityFactory = entityFactory;
     }
 
@@ -42,9 +42,10 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
         instanceTypeNodes = new HashMap<>();
         Workspace workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
+        Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = new IdMapper(new HashMap<>(), new HashMap<>());
-        Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,null);
-        return Set.of(checkinFolderNode);
+        Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,pluginNode);
+        return Set.of(pluginNode);
     }
 
     private Node.Op handleFolder(Workspace workspace,Folder folder,Node.Op parentFolderNode){
@@ -92,9 +93,8 @@ public class WorkSpaceReaderNode implements ArtifactReader<DesignSpaceInfo, Set<
         Collection<Folder> children = folder.getSubFolders();
         if (children != null) {
             for (Folder childFolder : children) {
-                Node.Op childFolderNode = handleFolder(workspace,childFolder,folderNode);
-                Node.Op subFolders = folderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
-                subFolders.addChild(childFolderNode);
+                Node.Op subFoldersNode  = folderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
+                Node.Op childFolderNode = handleFolder(workspace,childFolder,subFoldersNode);
             }
         }
     }

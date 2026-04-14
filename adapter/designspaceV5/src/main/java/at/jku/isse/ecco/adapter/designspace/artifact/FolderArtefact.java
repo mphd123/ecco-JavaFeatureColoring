@@ -63,6 +63,11 @@ public class FolderArtefact implements ArtifactData {
             for (Node type : typesNode.getChildren()){
                 InstanceTypeArtefact.build(workspace,folder,type,writerTypeManager);
             }
+            Node subFoldersNode = folderNode.getChildren().get(importantNodes.SubFolders.ordinal());
+            for (Node subfolder : subFoldersNode.getChildren()){
+               FolderArtefact.buildFolder(workspace,folder,subfolder,writerTypeManager);
+            }
+
         }else {
             throw new NodeWrongArtefact("wrong node passed");
         }
