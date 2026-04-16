@@ -3,6 +3,7 @@ package at.jku.isse.ecco;
 
 import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
@@ -27,29 +28,23 @@ public class DesignSpaceService extends EccoService {
 
     private ArtifactWriter<Set<Node>, DesignSpaceInfo> writer;
 
-    public Workspace getWorkspace() {
-        return workspace;
+    private IdMapper idMapper;
+
+    public DesignSpaceInfo getDesignSpaceInfo() {
+        return designSpaceInfo;
     }
 
-    public void setWorkspace(Workspace workspace) {
-        this.workspace = workspace;
+    public void setDesignSpaceInfo(DesignSpaceInfo designSpaceInfo) {
+        this.designSpaceInfo = designSpaceInfo;
     }
 
-    private Workspace workspace;
-
-    public Folder getFolder() {
-        return folder;
-    }
-
-    public void setFolder(Folder folder) {
-        this.folder = folder;
-    }
-
-    private Folder folder;
+    private DesignSpaceInfo designSpaceInfo;
 
     @Override
     public synchronized Set<Node.Op> readFiles() {
-        return this.reader.read(new DesignSpaceInfo(workspace,folder,null),null);
+        // change to commit with designspaceInfo
+        assert(designSpaceInfo != null);
+        return this.reader.read(designSpaceInfo,null);
     }
 
     public synchronized void open(){
@@ -63,12 +58,12 @@ public class DesignSpaceService extends EccoService {
 
     }
 
-    public synchronized Checkout checkoutDesignspace(String  configurationString,HashMap<Long,Long> newToOriginalId) {
+    public synchronized Checkout checkoutDesignspace(String  configurationString, DesignSpaceInfo info) {
+        assert(info != null);
         Configuration configuration = parseConfigurationString(configurationString);
         Checkout checkout = compose(configuration);
-
         Set<Node> nodes = compareArtifacts(checkout);
-        this.writer.write(new DesignSpaceInfo(workspace,folder, newToOriginalId), nodes);
+        this.writer.write(info, nodes);
         return checkout;
 
     }

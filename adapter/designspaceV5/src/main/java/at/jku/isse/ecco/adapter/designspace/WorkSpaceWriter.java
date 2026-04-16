@@ -12,6 +12,7 @@ import at.jku.isse.ecco.tree.Node;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
@@ -42,7 +43,13 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             throw new RuntimeException(e);
         }
         workspace.concludeChange();
-        writerTypeManager.newToOriginalId.forEach((newId,Oldid) -> base.newToOriginalIdMap().put(newId,Oldid) );
+        // this gave me a null key testing why  typewritermanager did not contain a null value
+        // writerTypeManager.newToOriginalId.forEach((newId, OldId) -> base.idMapper().putIds(newId, OldId) );
+        for (Map.Entry<Long,Long> entry : writerTypeManager.newToOriginalId.entrySet()) {
+            base.idMapper().putIds(entry.getKey(), entry.getValue());
+        }
+
+
 
 
         return new DesignSpaceInfo[0];

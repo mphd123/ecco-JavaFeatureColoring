@@ -43,7 +43,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Workspace workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
-        idMapper = new IdMapper(new HashMap<>(), new HashMap<>());
+        idMapper = base.idMapper();
         Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,pluginNode);
         return Set.of(pluginNode);
     }

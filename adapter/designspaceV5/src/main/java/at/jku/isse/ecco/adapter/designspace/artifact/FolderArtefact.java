@@ -58,7 +58,7 @@ public class FolderArtefact implements ArtifactData {
     public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
         if(folderNode.getArtifact().getData() instanceof FolderArtefact folderArtefact){
             Folder folder = Folder.CREATE(folderArtefact.getName(),workspace.its(parentFolder));
-
+            writerTypeManager.newToOriginalId.put(folder.getId(),folderArtefact.getId());
 
             Node typesNode = folderNode.getChildren().get(importantNodes.Types.ordinal());
             for (Node type : typesNode.getChildren()){
