@@ -5,11 +5,10 @@ import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
-import at.jku.isse.ecco.adapter.designspace.util.NodeWrongArtefact;
-import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
+import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
-import at.jku.isse.ecco.core.Association;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 

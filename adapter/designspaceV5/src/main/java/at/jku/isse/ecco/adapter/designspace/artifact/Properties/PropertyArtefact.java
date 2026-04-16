@@ -6,15 +6,14 @@ import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.ValueArtefact;
-import at.jku.isse.ecco.adapter.designspace.util.NodeWrongArtefact;
-import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
+import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 

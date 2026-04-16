@@ -1,19 +1,20 @@
 package at.jku.isse.ecco.adapter.designspace;
 
 import at.jku.isse.designspace.core.model.Folder;
+import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.artifact.FolderArtefact;
+import at.jku.isse.ecco.adapter.designspace.exception.FolderException;
+import at.jku.isse.ecco.adapter.designspace.exception.IDMapperException;
+import at.jku.isse.ecco.adapter.designspace.exception.WorkspaceException;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.service.listener.WriteListener;
 import at.jku.isse.ecco.tree.Node;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
     private final List<ReadListener> listeners = new ArrayList<>();
@@ -25,12 +26,13 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
     }
 
     @Override
-    public DesignSpaceInfo[] write(DesignSpaceInfo base, Set<Node> input) {
-        Workspace workspace = base.workspace();
-        Folder checkoutFolder = workspace.its(base.folder());
+    public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
+        Workspace workspace = info.workspace();
+        Folder checkoutFolder = workspace.its(info.folder());
         WriterTypeManager writerTypeManager = new WriterTypeManager();
         Node pluginNode = input.stream().toList().get(0);
         try {
+            checkIfValid(info);
 
         for (Node node : pluginNode.getChildren()){
             if(node.getArtifact().getData() instanceof FolderArtefact){
@@ -43,16 +45,20 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             throw new RuntimeException(e);
         }
         workspace.concludeChange();
-        // this gave me a null key testing why  typewritermanager did not contain a null value
-        // writerTypeManager.newToOriginalId.forEach((newId, OldId) -> base.idMapper().putIds(newId, OldId) );
-        for (Map.Entry<Long,Long> entry : writerTypeManager.newToOriginalId.entrySet()) {
-            base.idMapper().putIds(entry.getKey(), entry.getValue());
-        }
 
-
-
-
+        writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );
         return new DesignSpaceInfo[0];
+    }
+
+    private void checkIfValid(DesignSpaceInfo info) {
+        if (info.idMapper() == null) throw new IDMapperException("is null");
+        if (info.idMapper().getCurrentRepId() == null || info.idMapper().getCurrentRepId().isBlank()) {
+            throw new IDMapperException(String.format("the set repId for IDMapper is invalid is [%s]",info.idMapper().getCurrentRepId()));
+        }
+        if (info.workspace() == null) throw new WorkspaceException("is null");
+        if (info.folder() == null) throw new FolderException("is null");
+        Collection<Instance> instances = (Collection<Instance>) info.folder().get(Folder.INSTANCES);
+        if(!instances.isEmpty() || !info.folder().getSubFolders().isEmpty()) throw new FolderException("the chosen Folder is not empty");
     }
 
     @Override

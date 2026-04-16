@@ -1,9 +1,11 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
 import at.jku.isse.designspace.core.model.Folder;
+import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
-import at.jku.isse.ecco.adapter.designspace.util.NodeWrongArtefact;
-import at.jku.isse.ecco.adapter.designspace.util.TypeMangerException;
+import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
+import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
@@ -49,34 +51,23 @@ public class FolderArtefact implements ArtifactData {
         return id;
     }
 
-    public static void setUpFolderNode(Node.Op folderNode, EntityFactory factory){
-        folderNode.addChild(factory.createNode(new StringArtefact("types"))); // node fortypes
-        folderNode.addChild(factory.createNode(new StringArtefact("folders"))); // other folders
-    }
 
-
-    public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
+    public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         if(folderNode.getArtifact().getData() instanceof FolderArtefact folderArtefact){
             Folder folder = Folder.CREATE(folderArtefact.getName(),workspace.its(parentFolder));
             writerTypeManager.newToOriginalId.put(folder.getId(),folderArtefact.getId());
 
-            Node typesNode = folderNode.getChildren().get(importantNodes.Types.ordinal());
-            for (Node type : typesNode.getChildren()){
-                InstanceTypeArtefact.build(workspace,folder,type,writerTypeManager);
-            }
-            Node subFoldersNode = folderNode.getChildren().get(importantNodes.SubFolders.ordinal());
-            for (Node subfolder : subFoldersNode.getChildren()){
-               FolderArtefact.buildFolder(workspace,folder,subfolder,writerTypeManager);
+            for (Node child : folderNode.getChildren()) {
+                if (child.getArtifact().getData() instanceof FolderArtefact) {
+                    FolderArtefact.buildFolder(workspace,folder,child,writerTypeManager);
+                }else if ( child.getArtifact().getData() instanceof InstanceTypeArtefact) {
+                    InstanceTypeArtefact.build(workspace,folder,child,writerTypeManager);
+                }
             }
 
         }else {
             throw new NodeWrongArtefact("wrong node passed");
         }
 
-    }
-
-    public enum importantNodes {
-        Types,
-        SubFolders,
     }
 }

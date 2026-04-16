@@ -37,22 +37,24 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         return Map.of();
     }
 
+    private Workspace workspace;
+
     @Override
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
         instanceTypeNodes = new HashMap<>();
-        Workspace workspace = base.workspace();
+        workspace = base.workspace();
         Folder commitFolder = workspace.its(base.folder());
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
-        Node.Op checkinFolderNode = handleFolder(workspace,commitFolder,pluginNode);
+        Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode);
         return Set.of(pluginNode);
     }
 
-    private Node.Op handleFolder(Workspace workspace,Folder folder,Node.Op parentFolderNode){
+    private Node.Op handleFolder(Folder folder,Node.Op parentFolderNode){
         Node.Op folderNode = entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
-        FolderArtefact.setUpFolderNode(folderNode,entityFactory);
         try {
-            Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
+             // Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
+            Collection<Instance> instances = folder.getInstances(workspace);
 
             // instances contains other instances from other workspaces
             HashSet<InstanceType> addedInstanceTypes = new HashSet<>();
@@ -69,45 +71,40 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
                     if(!addedInstanceTypes.contains(instanceType)){
                         addedInstanceTypes.add(instanceType);
-                        handleInstanceType(workspace,folderNode,instanceType);
+                        handleInstanceType(folderNode,instanceType);
                     }
-
                     Instance workspaceInstance = workspace.its(instance);
                     if (workspaceInstance != null) {
-                        handleInstance(workspace,workspaceInstance);
+                        handleInstance(workspaceInstance);
                     }
                 }
-                handleSubFolders(folder,folderNode,workspace);
+                handleSubFolders(folder,folderNode);
                 parentFolderNode.addChild(folderNode);
             }
         } catch (Exception e) {
             System.err.println("an error happened while reading from the folders error message  " +e);
         }
-
-
         return folderNode;
     }
 
 
-    private void handleSubFolders(Folder folder,Node.Op folderNode, Workspace workspace) {
+    private void handleSubFolders(Folder folder,Node.Op folderNode) {
         Collection<Folder> children = folder.getSubFolders();
         if (children != null) {
             for (Folder childFolder : children) {
-                Node.Op subFoldersNode  = folderNode.getChildren().get(FolderArtefact.importantNodes.SubFolders.ordinal());
-                Node.Op childFolderNode = handleFolder(workspace,childFolder,subFoldersNode);
+                Node.Op childFolderNode = handleFolder(childFolder,folderNode);
             }
         }
     }
 
-    private void handleInstanceType(Workspace workspace, Node.Op parentNode,InstanceType instanceType){
-        Node.Op typeNode = parentNode.getChildren().get(FolderArtefact.importantNodes.Types.ordinal());
+    private void handleInstanceType(Node.Op folderNode,InstanceType instanceType){
         instanceType = workspace.its(instanceType);
         Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()))); // check if should be ordered
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
-        typeNode.addChild(instanceTypeNode);
+        folderNode.addChild(instanceTypeNode);
     }
 
-    private void handleInstance(Workspace workspace,Instance instance){
+    private void handleInstance(Instance instance){
         instance = workspace.its(instance);
         InstanceType instanceType = instance.getInstanceType();
         instanceType = workspace.its(instanceType);
