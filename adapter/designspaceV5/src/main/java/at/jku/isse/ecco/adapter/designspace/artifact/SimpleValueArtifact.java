@@ -1,7 +1,5 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
-import at.jku.isse.ecco.artifact.ArtifactData;
-
 import java.util.Objects;
 
 public class SimpleValueArtifact<T> implements ValueArtefact<T> {
@@ -15,12 +13,7 @@ public class SimpleValueArtifact<T> implements ValueArtefact<T> {
         this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        SimpleValueArtifact<?> that = (SimpleValueArtifact<?>) o;
-        return Objects.equals(value, that.value) && Objects.equals(valueType, that.valueType);
-    }
+
 
     @Override
     public int hashCode() {
@@ -35,5 +28,12 @@ public class SimpleValueArtifact<T> implements ValueArtefact<T> {
     @Override
     public String getValueType() {
         return valueType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleValueArtifact<?> that = (SimpleValueArtifact<?>) o;
+        return Objects.equals(value, that.value) && Objects.equals(valueType, that.valueType);
     }
 }

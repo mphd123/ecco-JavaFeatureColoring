@@ -7,19 +7,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WriterTypeManager {
-    public final Map<Long, InstanceType> instanceTypeMap;
-    public final Map<Long, PropertyType> propertyTypeMap;
+    public final Map<Long, InstanceType> instanceTypeMap = new HashMap<>();
+    public final Map<Long, PropertyType> propertyTypeMap = new HashMap<>();
 
-    public final Map<Long,Long> newToOriginalId;
-    public final Map<Long, Association> originalIdToAssociation;
+    public final Map<Long,Long> newToOriginalId = new HashMap<>();
+    public final Map<Long, Association> originalIdToAssociation = new HashMap<>();
+    public final Set<Instance> previousInstances = new HashSet<>();
 
-    public WriterTypeManager() {
-
-        LanguageWorkspace workspace = LanguageWorkspace.ROOT;
-        instanceTypeMap = new HashMap<>();
-        propertyTypeMap = new HashMap<>();
-        newToOriginalId = new HashMap<>();
-        originalIdToAssociation = new HashMap<>();
+    public WriterTypeManager(Workspace workspace) {
 
         Set<LanguageWorkspace> languageWorkspaces = getAllLanguageWorkspaces();
 
@@ -28,6 +23,10 @@ public class WriterTypeManager {
         Set<PropertyType> existingPropertyTypes =  languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getPropertyTypes().stream()).collect(Collectors.toSet());
         fillMap(instanceTypeMap,existingInstanceTypes);
         fillMap(propertyTypeMap,existingPropertyTypes);
+
+        getAllPreviousInstances(workspace,Folder.ROOT);
+
+
     }
 
     private <T extends ElementType> void fillMap(Map<Long,  T> map, Set<T> set){
@@ -38,20 +37,26 @@ public class WriterTypeManager {
 
     private Set<LanguageWorkspace> getAllLanguageWorkspaces(){
         Set<LanguageWorkspace>  set = new HashSet<>();
-        recusrivegetLeafWorkspaces(set,LanguageWorkspace.ROOT);
+        recursiveGetLeafWorkspace(set,LanguageWorkspace.ROOT);
         return set;
     }
 
-    private void recusrivegetLeafWorkspaces(Set<LanguageWorkspace>  set,LanguageWorkspace workspace){
+    private void recursiveGetLeafWorkspace(Set<LanguageWorkspace>  set, LanguageWorkspace workspace){
         if (workspace.getAllChildWorkspaces().isEmpty()){
             set.add(workspace);
         }else{
             for (Workspace workspace1 : workspace.getAllChildWorkspaces()){
-                if (workspace1 instanceof LanguageWorkspace languageWorkspace)
-                recusrivegetLeafWorkspaces(set,languageWorkspace);
+                if (workspace1 instanceof LanguageWorkspace languageWorkspace) {
+                    recursiveGetLeafWorkspace(set,languageWorkspace);
+                }
 
             }
         }
+    }
+
+    private void getAllPreviousInstances( Workspace workspace,Folder folder) {
+       previousInstances.addAll( folder.getInstances(workspace));
+       folder.getSubFolders().forEach(subfolder -> getAllPreviousInstances(workspace,subfolder));
     }
 
 

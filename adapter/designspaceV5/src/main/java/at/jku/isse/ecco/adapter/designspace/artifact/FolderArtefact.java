@@ -1,14 +1,12 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
 import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.InstanceType;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
-import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 

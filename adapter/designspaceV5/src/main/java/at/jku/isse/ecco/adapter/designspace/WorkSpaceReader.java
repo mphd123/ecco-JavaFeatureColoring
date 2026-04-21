@@ -10,14 +10,15 @@ import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.google.inject.Inject;
 import jdk.jshell.spi.ExecutionControl;
 
 
+import java.nio.file.Path;
 import java.util.*;
 
 
+@SuppressWarnings("ALL")
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
@@ -50,6 +51,8 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
         Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode);
+
+        listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getPath()),this));
         return Set.of(pluginNode);
     }
 
@@ -64,7 +67,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
             if (instances != null) {
                 for (Instance instance : instances){
                     // skip if the instance is not from another workspace
-                    // check if this is okay as otherwise duplicated instances would be added to the instancetypes
+                    // check if this is okay as otherwise duplicated instances would be added to the instanceTypes
                     if(! instance.getWorkspace().equals(workspace)) continue;
 
                     InstanceType instanceType = instance.getInstanceType();
@@ -102,7 +105,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     private void handleInstanceType(Node.Op folderNode,InstanceType instanceType){
         instanceType = workspace.its(instanceType);
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()))); // check if should be ordered
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId())));
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
         folderNode.addChild(instanceTypeNode);
     }
@@ -151,10 +154,11 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     @Override
     public void addListener(ReadListener listener) {
+        listeners.add(listener);
     }
 
     @Override
     public void removeListener(ReadListener listener) {
-
+        listeners.remove(listener);
     }
 }

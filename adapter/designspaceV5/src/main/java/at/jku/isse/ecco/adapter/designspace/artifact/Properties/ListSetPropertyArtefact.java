@@ -10,8 +10,6 @@ import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.Collection;
-
 public class ListSetPropertyArtefact extends PropertyArtefact {
 
     public ListSetPropertyArtefact(Long id, String name, Cardinality cardinality) {
@@ -26,7 +24,6 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
 
     private void addNodes(Node.Op propertyNode, CollectionProperty property, EntityFactory entityFactory) throws ExecutionControl.NotImplementedException {
         // not sure why CollectionProperty does not have a get
-        Collection<String> test;
         if (property instanceof SetProperty setProperty) {
             for (Object value: setProperty.get()){
                 addValueNode(propertyNode,value,entityFactory);
@@ -36,7 +33,6 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
                 addValueNode(propertyNode,value,entityFactory);
             }
         }else throw new ExecutionControl.NotImplementedException("for handling collectionProperties only List and Sets are supported");
-
     }
 
     public void build(Node propertyNode, Instance instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {

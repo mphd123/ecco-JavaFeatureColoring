@@ -1,20 +1,14 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 import at.jku.isse.designspace.core.foundation.Cardinality;
-import at.jku.isse.designspace.core.foundation.Key;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.SimpleValueArtifact;
-import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.ValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
-import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
-import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
-import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.Map;
 import java.util.Objects;
 
 public abstract class PropertyArtefact implements PropertyArtefactInterface {
