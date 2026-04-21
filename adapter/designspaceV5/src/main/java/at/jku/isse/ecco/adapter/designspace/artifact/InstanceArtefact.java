@@ -53,19 +53,16 @@ public class InstanceArtefact implements ArtifactData {
     }
 
 
-    public static void build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
-        if(instanceNode.getArtifact().getData() instanceof InstanceArtefact artefact){
-            InstanceType  instanceType = writerTypeManager.instanceTypeMap.get(artefact.getInstanceTypeId());
+    public void build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
+            InstanceType  instanceType = writerTypeManager.instanceTypeMap.get(instanceTypeId);
             if(instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
-            Instance instance = Instance.CREATE(workspace, instanceType,artefact.getName(),folder);
-            writerTypeManager.newToOriginalId.put(instance.getId(), artefact.getId());
+            Instance instance = Instance.CREATE(workspace, instanceType,name,folder);
+            writerTypeManager.newToOriginalId.put(instance.getId(), id);
 
             for (Node propertyTypeNode : instanceNode.getChildren()){
-                PropertyArtefact.build(instance,propertyTypeNode,writerTypeManager);
+                PropertyArtefact propertyArtefact = (PropertyArtefact) propertyTypeNode.getArtifact().getData();
+                propertyArtefact.build(propertyTypeNode, instance,writerTypeManager);
             }
-        }else {
-            throw new NodeWrongArtefact("wrong node passed it isnt a instanceNode");
-        }
     }
 
 

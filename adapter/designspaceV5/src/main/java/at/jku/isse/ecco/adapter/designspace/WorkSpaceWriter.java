@@ -32,11 +32,11 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
         WriterTypeManager writerTypeManager = new WriterTypeManager();
         Node pluginNode = input.stream().toList().get(0);
         try {
-            checkIfValid(info);
+            checkIfInfoValid(info);
 
         for (Node node : pluginNode.getChildren()){
-            if(node.getArtifact().getData() instanceof FolderArtefact){
-                    FolderArtefact.buildFolder(workspace,checkoutFolder,node,writerTypeManager);
+            if(node.getArtifact().getData() instanceof FolderArtefact folderArtefact){
+                   folderArtefact.buildFolder(workspace,checkoutFolder,node,writerTypeManager);
             }
         }
 
@@ -50,7 +50,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
         return new DesignSpaceInfo[0];
     }
 
-    private void checkIfValid(DesignSpaceInfo info) {
+    private void checkIfInfoValid(DesignSpaceInfo info) {
         if (info.idMapper() == null) throw new IDMapperException("is null");
         if (info.idMapper().getCurrentRepId() == null || info.idMapper().getCurrentRepId().isBlank()) {
             throw new IDMapperException(String.format("the set repId for IDMapper is invalid is [%s]",info.idMapper().getCurrentRepId()));

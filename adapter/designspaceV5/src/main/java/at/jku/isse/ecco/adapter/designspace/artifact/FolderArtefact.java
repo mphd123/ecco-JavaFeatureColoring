@@ -52,22 +52,15 @@ public class FolderArtefact implements ArtifactData {
     }
 
 
-    public static void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
-        if(folderNode.getArtifact().getData() instanceof FolderArtefact folderArtefact){
-            Folder folder = Folder.CREATE(folderArtefact.getName(),workspace.its(parentFolder));
-            writerTypeManager.newToOriginalId.put(folder.getId(),folderArtefact.getId());
-
+    public void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
+            Folder folder = Folder.CREATE(name,workspace.its(parentFolder));
+            writerTypeManager.newToOriginalId.put(folder.getId(),id);
             for (Node child : folderNode.getChildren()) {
-                if (child.getArtifact().getData() instanceof FolderArtefact) {
-                    FolderArtefact.buildFolder(workspace,folder,child,writerTypeManager);
-                }else if ( child.getArtifact().getData() instanceof InstanceTypeArtefact) {
-                    InstanceTypeArtefact.build(workspace,folder,child,writerTypeManager);
+                if (child.getArtifact().getData() instanceof FolderArtefact subFolder) {
+                    subFolder.buildFolder(workspace,folder,child,writerTypeManager);
+                }else if ( child.getArtifact().getData() instanceof InstanceTypeArtefact instanceTypeArtefact) {
+                    instanceTypeArtefact.build(workspace,folder,child,writerTypeManager);
                 }
             }
-
-        }else {
-            throw new NodeWrongArtefact("wrong node passed");
-        }
-
     }
 }

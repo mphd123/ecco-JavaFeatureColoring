@@ -1,15 +1,18 @@
 package at.jku.isse.ecco.adapter.designspace;
 
+import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
-import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
+import at.jku.isse.ecco.adapter.designspace.artifact.Properties.*;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.google.inject.Inject;
+import jdk.jshell.spi.ExecutionControl;
 
 
 import java.util.*;
@@ -104,7 +107,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         folderNode.addChild(instanceTypeNode);
     }
 
-    private void handleInstance(Instance instance){
+    private void handleInstance(Instance instance) throws ExecutionControl.NotImplementedException {
         instance = workspace.its(instance);
         InstanceType instanceType = instance.getInstanceType();
         instanceType = workspace.its(instanceType);
@@ -112,27 +115,33 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
         Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
         instanceTypeNode.addChild(instanceNode );
-
         Collection<PropertyType> propertyTypes = instanceType.getPropertyTypes();
-        // have to figure out how to recreate it
         handleProperties(instance,instanceNode,propertyTypes);
     }
 
-    private void handleProperties(Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes){
+    private void handleProperties(Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
 
         for (PropertyType pt : propertyTypes) {
             if (pt instanceof  InitPropertyType) continue;
             // currently not sure how to handle
-
             Property property = instance.getProperty(pt);
-
             if (property.getName() != null &&
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
                     !property.getName().equals("name")) {
-                PropertyArtefact.setupNode(new PropertyArtefact(property.getId(), property.getName(), pt.getCardinality()),instanceNode,entityFactory,property);
+                PropertyArtefactInterface artefact =  createPropArtefact(property.getId(), property.getName(), pt.getCardinality());
+                artefact.createNode(instanceNode,entityFactory,property);
             }
         }
+    }
+
+    private PropertyArtefactInterface createPropArtefact(Long id, String name, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
+        return switch (cardinality) {
+            case MAP -> new MapPropertyArtefact(id, name, cardinality);
+            case SET, LIST -> new ListSetPropertyArtefact(id, name, cardinality);
+            case SINGLE -> new SinglePropertyArtefact(id, name, cardinality);
+            default -> throw new ExecutionControl.NotImplementedException("Ordered Set is currently not supported");
+        };
     }
 
     @Override
