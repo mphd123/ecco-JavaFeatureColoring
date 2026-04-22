@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 
-@SuppressWarnings("ALL")
+
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();

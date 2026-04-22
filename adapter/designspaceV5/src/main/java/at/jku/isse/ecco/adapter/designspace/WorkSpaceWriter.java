@@ -37,10 +37,13 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             }
         }
 
+        writerTypeManager.resolveRefProperties(workspace);
+
         } catch (Exception e) {
             workspace.dismissChanges();
             throw new RuntimeException(e);
         }
+
         workspace.concludeChange();
 
         writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );

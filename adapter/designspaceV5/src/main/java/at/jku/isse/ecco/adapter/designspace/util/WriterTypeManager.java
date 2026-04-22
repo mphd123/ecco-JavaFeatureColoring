@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.adapter.designspace.util.refFixUp.RefFixUpInterFace;
 import at.jku.isse.ecco.core.Association;
 
 import java.util.*;
@@ -13,6 +14,8 @@ public class WriterTypeManager {
     public final Map<Long,Long> newToOriginalId = new HashMap<>();
     public final Map<Long, Association> originalIdToAssociation = new HashMap<>();
     public final Set<Instance> previousInstances = new HashSet<>();
+    public final Set<RefFixUpInterFace> refFixUps = new HashSet<>();
+    public final Set<Instance> createdInstances = new HashSet<>();
 
     public WriterTypeManager(Workspace workspace) {
 
@@ -57,6 +60,25 @@ public class WriterTypeManager {
     private void getAllPreviousInstances( Workspace workspace,Folder folder) {
        previousInstances.addAll( folder.getInstances(workspace));
        folder.getSubFolders().forEach(subfolder -> getAllPreviousInstances(workspace,subfolder));
+    }
+
+    private Set<Instance> getCreatedInstancesOfId(Long originalID,Workspace workspace) {
+        // idea for this is to collect all created Instances so that the ref can choose the closest
+
+        Set<Instance>  res = new HashSet<>();
+        for (Map.Entry<Long,Long> entry : newToOriginalId.entrySet()){
+            if (Objects.equals(entry.getValue(), originalID)) {
+                res.addAll(createdInstances.stream().filter(instance -> instance.getId() == entry.getKey()).collect(Collectors.toSet()));
+            }
+        }
+        // case res no instances where created
+        if (res.isEmpty()) res.addAll(Folder.ROOT.getInstances(workspace).stream().filter(instance -> instance.getId() == originalID).collect(Collectors.toSet()));
+
+        return  res;
+    }
+
+    public void resolveRefProperties(Workspace workspace){
+        refFixUps.forEach(refFixUpInterFace -> refFixUpInterFace.fixUp(workspace,newToOriginalId));
     }
 
 

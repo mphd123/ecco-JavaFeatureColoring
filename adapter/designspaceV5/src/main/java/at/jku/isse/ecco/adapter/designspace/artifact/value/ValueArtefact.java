@@ -1,4 +1,4 @@
-package at.jku.isse.ecco.adapter.designspace.artifact;
+package at.jku.isse.ecco.adapter.designspace.artifact.value;
 
 import at.jku.isse.ecco.artifact.ArtifactData;
 

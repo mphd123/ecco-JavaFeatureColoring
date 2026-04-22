@@ -1,15 +1,19 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 import at.jku.isse.designspace.core.foundation.Cardinality;
+import at.jku.isse.designspace.core.foundation.Key;
 import at.jku.isse.designspace.core.model.*;
-import at.jku.isse.ecco.adapter.designspace.artifact.SimpleValueArtifact;
-import at.jku.isse.ecco.adapter.designspace.artifact.ValueArtefact;
+import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
+import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
+import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.RefProeprtyFixupRecord;
+import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.Objects;
+import java.util.*;
 
 public abstract class PropertyArtefact implements PropertyArtefactInterface {
     protected final Long id;
@@ -48,20 +52,26 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
         return cardinality;
     }
 
-    protected  void addValueNode(Node.Op propertyNode, Object value,EntityFactory entityFactory){
+    protected void addValueNode(Node.Op propertyNode, Object value,EntityFactory entityFactory){
         if (value instanceof Instance instanceValue) {
-            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact(instanceValue.getId(), instanceValue.getName())));
+            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact(instanceValue.getId(), instanceValue.getName(),instanceValue.getInstanceType().getName())));
         }else{
             propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
         }
     }
-    protected   ValueArtefact<?> getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
-        if (valueNode.getArtifact().getData() instanceof ReferenceValueArtefact) {
-            throw new  ExecutionControl.NotImplementedException("references");
+    protected  ValueArtefact<?> getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+        if (valueNode.getArtifact().getData() instanceof ReferenceValueArtefact refArtefact) {
+            return refArtefact;
         }else if (valueNode.getArtifact().getData() instanceof ValueArtefact<?> valueartefact) {
             return valueartefact;
         } else {
             throw new NodeWrongArtefact(" wrong artefact for value");
         }
     }
+
+
+
+
+
+
 }
