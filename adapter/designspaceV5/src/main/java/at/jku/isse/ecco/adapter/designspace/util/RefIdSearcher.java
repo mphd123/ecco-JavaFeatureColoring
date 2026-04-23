@@ -25,6 +25,7 @@ public class RefIdSearcher {
         Optional<Instance> result  = checkInstances(folder);
         searchedFolders.add(folder);
         if(result.isPresent()) return result;
+        if(folder.getParentFolder()== null) return result;
         result = getClosestInstance(folder.getParentFolder());
         if(result.isPresent()) return result;
 
