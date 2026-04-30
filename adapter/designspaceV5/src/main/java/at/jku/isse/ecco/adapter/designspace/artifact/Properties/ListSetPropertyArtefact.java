@@ -2,6 +2,7 @@ package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.foundation.CollectionProperty;
+import at.jku.isse.designspace.core.foundation.OrderedSet;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -38,7 +39,11 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
             for (Object value: listProperty.get()){
                 addValueNode(propertyNode,value,entityFactory);
             }
-        }else throw new ExecutionControl.NotImplementedException("for handling collectionProperties only List and Sets are supported");
+        }else if (property instanceof OrderedSetProperty orderedSetProperty) {
+        for (Object value: orderedSetProperty.get()){
+            addValueNode(propertyNode,value,entityFactory);
+        }
+    }else throw new ExecutionControl.NotImplementedException("for handling collectionProperties only List and (ordered) Sets are supported");
     }
 
     public void build(Node propertyNode, Instance instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
@@ -57,17 +62,17 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
         if(artefactCollection.isEmpty()) return;
 
         ValueArtefact<?> example = artefactCollection.stream().findAny().orElse(null); // they should all be the same artefact
-        if (example instanceof  ReferenceValueArtefact referenceValueArtefact) {
+        if (example instanceof  ReferenceValueArtefact) {
             Collection<Long> collection;
-            if(propertyType.getCardinality().equals(Cardinality.SET)) collection = new HashSet<>();
+            if(propertyType.getCardinality().equals(Cardinality.SET) || propertyType.getCardinality().equals(Cardinality.ORDERED_SET )) collection = new OrderedSet<>();
             else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
             else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
 
             artefactCollection.forEach(( value) ->  collection.add((Long) value.getValue()));
             writerTypeManager.refFixUps.add(new CollectionFixUp(instance,propertyType,collection));
-        }else if (example instanceof SimpleValueArtifact<?> valueArtifact) {
+        }else if (example instanceof SimpleValueArtifact<?>) {
             Collection<Object> collection;
-            if(propertyType.getCardinality().equals(Cardinality.SET)) collection = new HashSet<>();
+            if(propertyType.getCardinality().equals(Cardinality.SET)|| propertyType.getCardinality().equals(Cardinality.ORDERED_SET )) collection = new OrderedSet<>();
             else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
             else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
             artefactCollection.forEach(( value) ->  collection.add(value.getValue()));

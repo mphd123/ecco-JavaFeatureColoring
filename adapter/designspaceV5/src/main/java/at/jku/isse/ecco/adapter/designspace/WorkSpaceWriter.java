@@ -40,6 +40,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
         writerTypeManager.resolveRefProperties(workspace);
 
         } catch (Exception e) {
+            e.printStackTrace();
             workspace.dismissChanges();
             throw new RuntimeException(e);
         }
