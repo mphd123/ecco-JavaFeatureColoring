@@ -89,6 +89,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
             }
         } catch (Exception e) {
             System.err.println("an error happened while reading from the folders error message  " +e);
+            throw new RuntimeException(e);
         }
         return folderNode;
     }
@@ -141,9 +142,9 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     private PropertyArtefactInterface createPropArtefact(Long id, String name, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
         return switch (cardinality) {
             case MAP -> new MapPropertyArtefact(id, name, cardinality);
-            case SET, LIST -> new ListSetPropertyArtefact(id, name, cardinality);
+            case SET, LIST,ORDERED_SET -> new ListSetPropertyArtefact(id, name, cardinality);
             case SINGLE -> new SinglePropertyArtefact(id, name, cardinality);
-            default -> throw new ExecutionControl.NotImplementedException("Ordered Set is currently not supported");
+            default -> throw new ExecutionControl.NotImplementedException("Unsupported Cardinality");
         };
     }
 

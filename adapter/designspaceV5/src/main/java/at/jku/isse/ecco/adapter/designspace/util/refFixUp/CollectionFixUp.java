@@ -21,7 +21,7 @@ public class CollectionFixUp extends AbstractRefFixUp{
         Collection<Instance> refInstances;
 
         if(propertyType.getCardinality().equals(Cardinality.SET)) refInstances = new HashSet<>();
-        else if (propertyType.getCardinality().equals(Cardinality.LIST)) refInstances = new ArrayList<>();
+        else if (propertyType.getCardinality().equals(Cardinality.LIST) || propertyType.getCardinality().equals(Cardinality.ORDERED_SET)) refInstances = new ArrayList<>();
         else throw new RuntimeException("CollectionFixUp received invalid Cardinality");
 
         for (Long refID : refCollection) {
