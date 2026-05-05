@@ -16,7 +16,7 @@ import jdk.jshell.spi.ExecutionControl;
 
 import java.nio.file.Path;
 import java.util.*;
-
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
@@ -106,7 +106,9 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     private void handleInstanceType(Node.Op folderNode,InstanceType instanceType){
         instanceType = workspace.its(instanceType);
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId())));
+        AtomicReference<Long> superId = new AtomicReference<>();
+        Optional.of(instanceType.getSuperType()).ifPresentOrElse((type) -> superId.set(type.getId()),() -> superId.set(null));
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()),superId.get()));
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
         folderNode.addChild(instanceTypeNode);
     }

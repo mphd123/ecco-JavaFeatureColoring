@@ -11,7 +11,7 @@ import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-public record InstanceTypeArtefact(String name, Long id) implements ArtifactData {
+public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implements ArtifactData {
 
     public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         InstanceType instanceType;
