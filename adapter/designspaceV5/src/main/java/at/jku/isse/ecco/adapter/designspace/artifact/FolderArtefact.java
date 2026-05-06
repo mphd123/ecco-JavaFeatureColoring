@@ -14,17 +14,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
-public class FolderArtefact implements ArtifactData {
+public class FolderArtefact extends CommitFolderArtefact {
     private final String name;
-
-
-
     private final Long id;
-    public final Collection<Integer> instantTypeIds;
-
     public FolderArtefact(String name,Long id) {
         this.name = name;
-        instantTypeIds = new HashSet<>();
         this.id = id;
     }
 
@@ -49,7 +43,7 @@ public class FolderArtefact implements ArtifactData {
         return id;
     }
 
-
+    @Override
     public void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
             Folder folder = Folder.CREATE(name,workspace.its(parentFolder));
             writerTypeManager.newToOriginalId.put(folder.getId(),id);

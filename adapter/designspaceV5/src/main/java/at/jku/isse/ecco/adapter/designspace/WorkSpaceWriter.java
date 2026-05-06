@@ -3,6 +3,7 @@ import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
+import at.jku.isse.ecco.adapter.designspace.artifact.CommitFolderArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.FolderArtefact;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
@@ -32,7 +33,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             info.checkIfInfoValid(info);
 
         for (Node node : pluginNode.getChildren()){
-            if(node.getArtifact().getData() instanceof FolderArtefact folderArtefact){
+            if(node.getArtifact().getData() instanceof CommitFolderArtefact folderArtefact){
                    folderArtefact.buildFolder(workspace,checkoutFolder,node,writerTypeManager);
             }
         }

@@ -50,16 +50,16 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Folder commitFolder = workspace.its(base.folder());
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
-        Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode);
+        Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
 
         listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getPath()),this));
         return Set.of(pluginNode);
     }
 
-    private Node.Op handleFolder(Folder folder,Node.Op parentFolderNode){
-        Node.Op folderNode = entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
+    private Node.Op handleFolder(Folder folder,Node.Op parentFolderNode,boolean isCommitFolder){
+        Node.Op folderNode = (isCommitFolder) ?  entityFactory.createOrderedNode(new CommitFolderArtefact()) : entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
         try {
-             // Collection<Instance> instances = (Collection<Instance>) folder.get(Folder.INSTANCES);
+
             Collection<Instance> instances = folder.getInstances(workspace);
 
             // instances contains other instances from other workspaces
@@ -99,7 +99,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Collection<Folder> children = folder.getSubFolders();
         if (children != null) {
             for (Folder childFolder : children) {
-                Node.Op childFolderNode = handleFolder(childFolder,folderNode);
+                Node.Op childFolderNode = handleFolder(childFolder,folderNode,false);
             }
         }
     }

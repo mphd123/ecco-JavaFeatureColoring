@@ -17,8 +17,4 @@ public class TypeCreationHandler {
     });
 
 
-    private final
-
-
-
 }
