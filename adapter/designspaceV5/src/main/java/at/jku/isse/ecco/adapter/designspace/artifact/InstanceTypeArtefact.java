@@ -11,6 +11,8 @@ import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
+import java.util.Objects;
+
 public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implements ArtifactData {
 
     public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
@@ -34,5 +36,17 @@ public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implem
             InstanceArtefact instanceArtefact = (InstanceArtefact) instanceNode.getArtifact().getData();
             instanceArtefact.build(workspace, folder, instanceNode, writerTypeManager);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        InstanceTypeArtefact that = (InstanceTypeArtefact) o;
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(SuperTypeId, that.SuperTypeId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, id, SuperTypeId);
     }
 }

@@ -12,6 +12,7 @@ import jdk.jshell.spi.ExecutionControl;
 
 public class CommitFolderArtefact implements ArtifactData {
 
+
     public void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         for (Node child : folderNode.getChildren()) {
             if (child.getArtifact().getData() instanceof FolderArtefact subFolder) {
@@ -20,5 +21,10 @@ public class CommitFolderArtefact implements ArtifactData {
                 instanceTypeArtefact.build(workspace, parentFolder, child, writerTypeManager);
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj.getClass().equals(this.getClass());
     }
 }
