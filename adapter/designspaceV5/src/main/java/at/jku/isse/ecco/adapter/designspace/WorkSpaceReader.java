@@ -136,7 +136,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                     !property.getName().equals("modifiedBy") &&
                     !property.getName().equals("name")) {
                 PropertyArtefactInterface artefact =  createPropArtefact(property.getId(), property.getName(), pt.getCardinality());
-                artefact.createNode(instanceNode,entityFactory,property);
+                artefact.createNode(instanceNode,entityFactory,property, idMapper);
             }
         }
     }

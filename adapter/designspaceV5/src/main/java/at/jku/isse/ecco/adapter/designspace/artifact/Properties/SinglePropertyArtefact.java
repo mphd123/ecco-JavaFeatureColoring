@@ -4,6 +4,7 @@ import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Property;
 import at.jku.isse.designspace.core.model.PropertyType;
+import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
@@ -22,10 +23,10 @@ public class SinglePropertyArtefact extends PropertyArtefact {
     }
 
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property){
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property, IdMapper idMapper){
         Node.Op single = entityFactory.createNode(this);
         InstanceNode.addChild(single);
-        addValueNode(single, property.get(),entityFactory);
+        addValueNode(single, property.get(),entityFactory,idMapper);
     }
 
     public void build(Node propertyNode, Instance instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {

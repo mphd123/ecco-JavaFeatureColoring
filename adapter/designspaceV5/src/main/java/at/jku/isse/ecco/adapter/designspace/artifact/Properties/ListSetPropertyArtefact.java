@@ -4,6 +4,7 @@ import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.foundation.CollectionProperty;
 import at.jku.isse.designspace.core.foundation.OrderedSet;
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
@@ -23,25 +24,25 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
         super(id, name, cardinality);
     }
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property) throws ExecutionControl.NotImplementedException {
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property, IdMapper idMapper) throws ExecutionControl.NotImplementedException {
         Node.Op setNode = entityFactory.createNode(this);
         InstanceNode.addChild(setNode);
-        addNodes(setNode,(CollectionProperty) property, entityFactory );
+        addNodes(setNode,(CollectionProperty) property, entityFactory,idMapper );
     }
 
-    private void addNodes(Node.Op propertyNode, CollectionProperty property, EntityFactory entityFactory) throws ExecutionControl.NotImplementedException {
+    private void addNodes(Node.Op propertyNode, CollectionProperty property, EntityFactory entityFactory,IdMapper idMapper) throws ExecutionControl.NotImplementedException {
         // not sure why CollectionProperty does not have a get
         if (property instanceof SetProperty setProperty) {
             for (Object value: setProperty.get()){
-                addValueNode(propertyNode,value,entityFactory);
+                addValueNode(propertyNode,value,entityFactory,idMapper);
             }
         }else if (property instanceof ListProperty listProperty) {
             for (Object value: listProperty.get()){
-                addValueNode(propertyNode,value,entityFactory);
+                addValueNode(propertyNode,value,entityFactory,idMapper);
             }
         }else if (property instanceof OrderedSetProperty orderedSetProperty) {
         for (Object value: orderedSetProperty.get()){
-            addValueNode(propertyNode,value,entityFactory);
+            addValueNode(propertyNode,value,entityFactory,idMapper);
         }
     }else throw new ExecutionControl.NotImplementedException("for handling collectionProperties only List and (ordered) Sets are supported");
     }

@@ -3,6 +3,7 @@ package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 import at.jku.isse.designspace.core.foundation.Cardinality;
 import at.jku.isse.designspace.core.foundation.Key;
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -23,18 +24,18 @@ public class MapPropertyArtefact extends PropertyArtefact{
         super(id, name, cardinality);
     }
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property) {
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property, IdMapper idMapper) {
         Node.Op mapNode = entityFactory.createNode(this);
         InstanceNode.addChild(mapNode);
-        addMapNodes(mapNode,(MapProperty) property, entityFactory);
+        addMapNodes(mapNode,(MapProperty) property, entityFactory,idMapper);
     }
 
-    private  void addMapNodes(Node.Op propertyNode, MapProperty property, EntityFactory entityFactory){
+    private  void addMapNodes(Node.Op propertyNode, MapProperty property, EntityFactory entityFactory,IdMapper idMapper){
         Map<?,?> map = property.get();
         for (Object key: map.keySet()){
             Object value = map.get(key);
             Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getKey()));
-            addValueNode(keyNode,value,entityFactory);
+            addValueNode(keyNode,value,entityFactory,idMapper);
             propertyNode.addChild(keyNode);
         }
     }
