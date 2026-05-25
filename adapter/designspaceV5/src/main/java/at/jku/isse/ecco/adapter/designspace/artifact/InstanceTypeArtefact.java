@@ -1,8 +1,10 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
+import at.jku.isse.designspace.core.model.DesignSpace;
 import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.InstanceType;
+
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.WorkspaceElementType;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -11,12 +13,30 @@ import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
-public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implements ArtifactData {
+
+public class InstanceTypeArtefact implements ArtifactData {
+
+    public final String name;
+    public final Long id;
+    public final String languageWorkspaceName;
+    Collection<Long> superIds = new HashSet<>();
+
+    public InstanceTypeArtefact(String name, Long id, String languageWorkspaceName,Collection<WorkspaceElementType> superTypes) {
+        this.name = name;
+        this.id = id;
+        this.languageWorkspaceName = languageWorkspaceName;
+        superTypes.forEach(superType -> {
+            superIds.add(superType.getId());
+        });
+    }
+
 
     public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
-        InstanceType instanceType;
+        WorkspaceElementType instanceType;
         if (writerTypeManager.instanceTypeMap.containsKey(id)) {
             if (writerTypeManager.instanceTypeMap.get(id).getName().equals(name)) {
                 instanceType = writerTypeManager.instanceTypeMap.get(id);
@@ -28,7 +48,7 @@ public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implem
         } else {
             // need to support handle supertypes
             // todo and handle the id reassignment at the end
-            instanceType = InstanceType.CREATE(workspace, name);
+            instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createWorkspaceElementType( name);
             writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
             writerTypeManager.instanceTypeMap.put(id, instanceType);
         }
@@ -42,11 +62,11 @@ public record InstanceTypeArtefact(String name, Long id,Long SuperTypeId) implem
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         InstanceTypeArtefact that = (InstanceTypeArtefact) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(SuperTypeId, that.SuperTypeId);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(superIds, that.superIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, id, SuperTypeId);
+        return Objects.hash(name, id, superIds);
     }
 }

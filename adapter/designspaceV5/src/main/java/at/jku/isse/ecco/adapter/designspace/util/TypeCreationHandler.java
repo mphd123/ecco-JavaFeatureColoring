@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
-import at.jku.isse.designspace.core.model.InstanceType;
+
+import at.jku.isse.designspace.core.model.WorkspaceElementType;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,9 +10,9 @@ import java.util.TreeMap;
 
 public class TypeCreationHandler {
 
-    private final SortedMap<InstanceType,Long>  toCreateTypes = new TreeMap<>(new Comparator<InstanceType>() {
+    private final SortedMap<WorkspaceElementType,Long>  toCreateTypes = new TreeMap<>(new Comparator<WorkspaceElementType>() {
         @Override
-        public int compare(InstanceType o1, InstanceType o2) {
+        public int compare(WorkspaceElementType o1, WorkspaceElementType o2) {
             return 0;
         }
     });

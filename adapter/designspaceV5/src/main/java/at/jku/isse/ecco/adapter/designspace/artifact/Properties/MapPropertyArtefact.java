@@ -1,7 +1,8 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
-import at.jku.isse.designspace.core.foundation.Cardinality;
-import at.jku.isse.designspace.core.foundation.Key;
+
+import at.jku.isse.designspace.commons.Cardinality;
+import at.jku.isse.designspace.commons.Key;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
@@ -24,24 +25,24 @@ public class MapPropertyArtefact extends PropertyArtefact{
         super(id, name, cardinality);
     }
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property, IdMapper idMapper) {
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper) {
         Node.Op mapNode = entityFactory.createNode(this);
         InstanceNode.addChild(mapNode);
-        addMapNodes(mapNode,(MapProperty) property, entityFactory,idMapper);
+        addMapNodes(mapNode, (WorkspacePropertyMap<?>) property, entityFactory,idMapper);
     }
 
-    private  void addMapNodes(Node.Op propertyNode, MapProperty property, EntityFactory entityFactory,IdMapper idMapper){
-        Map<?,?> map = property.get();
+    private  void addMapNodes(Node.Op propertyNode, WorkspacePropertyMap<?>  property, EntityFactory entityFactory,IdMapper idMapper){
+        Map<?,?> map = property.getMap();
         for (Object key: map.keySet()){
             Object value = map.get(key);
-            Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getKey()));
+            Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getName()));
             addValueNode(keyNode,value,entityFactory,idMapper);
             propertyNode.addChild(keyNode);
         }
     }
 
-    public void build(Node propertyNode, Instance instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
-        PropertyType propertyType = instance.getPropertyType(name);
+    public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+        WorkspacePropertyType propertyType = DesignSpace.getPropertyType(name);//isntance.getPropertyType(name); // not sure
         Map<Key,ValueArtefact<?>> map = new HashMap<>();
         for (Node keyNode : propertyNode.getChildren()) {
             ValueArtefact<?> keyArtefact = getValueArtefact(keyNode);
@@ -54,7 +55,7 @@ public class MapPropertyArtefact extends PropertyArtefact{
     }
 
 
-    private void setMapPropValue(Instance instance, PropertyType propertyType, Map<Key,ValueArtefact<?>> artefactMap, WriterTypeManager writerTypeManager) {
+    private void setMapPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Map<Key,ValueArtefact<?>> artefactMap, WriterTypeManager writerTypeManager) {
         if(artefactMap.isEmpty()) return;
         ValueArtefact<?> example = artefactMap.values().stream().findAny().orElse(null);
         if (example instanceof  ReferenceValueArtefact referenceValueArtefact) {

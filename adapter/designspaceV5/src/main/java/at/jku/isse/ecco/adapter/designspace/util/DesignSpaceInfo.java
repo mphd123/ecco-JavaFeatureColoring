@@ -1,8 +1,9 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
 import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.Instance;
+
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.exception.FolderException;
 import at.jku.isse.ecco.adapter.designspace.exception.IDMapperException;
@@ -18,7 +19,7 @@ public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMap
         }
         if (info.workspace() == null) throw new WorkspaceException("is null");
         if (info.folder() == null) throw new FolderException("is null");
-        Collection<Instance> instances = (Collection<Instance>) info.folder().get(Folder.INSTANCES);
+        Collection<WorkspaceElement> instances = (Collection<WorkspaceElement>) info.folder().getWorkspaceElementContents(workspace);
         if(!instances.isEmpty() || !info.folder().getSubFolders().isEmpty()) throw new FolderException("the chosen Folder is not empty");
     }
 }

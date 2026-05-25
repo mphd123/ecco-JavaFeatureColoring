@@ -25,7 +25,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
     @Override
     public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
         Workspace workspace = info.workspace();
-        Folder checkoutFolder = workspace.its(info.folder());
+        Folder checkoutFolder = info.folder(); // workspace.its();
         WriterTypeManager writerTypeManager = new WriterTypeManager(workspace);
         Node pluginNode = input.stream().findFirst().orElse(null);
         if (pluginNode == null) throw new EccoException("the Workspace writer received an empty Node set");
@@ -42,16 +42,16 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
 
         } catch (Exception e) {
             e.printStackTrace();
-            workspace.dismissChanges();
+            //workspace.dismissChanges();
             throw new RuntimeException(e);
         }
 
-        workspace.concludeChange();
+        workspace.acceptAllChanges();
 
         writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );
 
 
-        listeners.forEach(listener -> listener.fileWriteEvent(Path.of(checkoutFolder.getPath()),this));
+        listeners.forEach(listener -> listener.fileWriteEvent(Path.of(checkoutFolder.getQualifiedName()),this));
         return new DesignSpaceInfo[0];
     }
 

@@ -1,9 +1,11 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
-import at.jku.isse.designspace.core.foundation.Cardinality;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.Property;
-import at.jku.isse.designspace.core.model.PropertyType;
+
+import at.jku.isse.designspace.commons.Cardinality;
+import at.jku.isse.designspace.core.model.DesignSpace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
+import at.jku.isse.designspace.core.model.WorkspaceProperty;
+import at.jku.isse.designspace.core.model.WorkspacePropertyType;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -23,19 +25,19 @@ public class SinglePropertyArtefact extends PropertyArtefact {
     }
 
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, Property property, IdMapper idMapper){
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper){
         Node.Op single = entityFactory.createNode(this);
         InstanceNode.addChild(single);
         addValueNode(single, property.get(),entityFactory,idMapper);
     }
 
-    public void build(Node propertyNode, Instance instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+    public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         Node valueNode = propertyNode.getChildren().get(0);
-        PropertyType propertyType = instance.getPropertyType(name);
+        WorkspacePropertyType propertyType = DesignSpace.getPropertyType(name);//isntance.getPropertyType(name); // not sure
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);
     }
 
-    private void setSinglePropValue(Instance instance, PropertyType propertyType, ValueArtefact<?> valueArtefact, WriterTypeManager writerTypeManager) {
+    private void setSinglePropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, ValueArtefact<?> valueArtefact, WriterTypeManager writerTypeManager) {
         if (valueArtefact instanceof  ReferenceValueArtefact referenceValueArtefact) {
             writerTypeManager.refFixUps.add(new SingleFixUp(instance,propertyType,referenceValueArtefact.getValue()));
         }else if (valueArtefact instanceof SimpleValueArtifact<?> valueArtifact) {

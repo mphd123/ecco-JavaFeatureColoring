@@ -1,9 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
-import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.InstanceType;
-import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.*;
+
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -18,9 +16,9 @@ public record InstanceArtefact(String name, Long id, Long instanceTypeId) implem
 
 
     public void build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
-        InstanceType instanceType = writerTypeManager.instanceTypeMap.get(instanceTypeId);
+        WorkspaceElementType instanceType = writerTypeManager.instanceTypeMap.get(instanceTypeId);
         if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
-        Instance instance = Instance.CREATE(workspace, instanceType, name, folder);
+        WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
         writerTypeManager.newToOriginalId.put(instance.getId(), id);
 
         for (Node propertyTypeNode : instanceNode.getChildren()) {

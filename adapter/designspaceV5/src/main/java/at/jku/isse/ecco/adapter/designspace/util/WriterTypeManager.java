@@ -8,31 +8,37 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WriterTypeManager {
-    public final Map<Long, InstanceType> instanceTypeMap = new HashMap<>();
-    public final Map<Long, PropertyType> propertyTypeMap = new HashMap<>();
+    public final Map<Long, WorkspaceElementType> instanceTypeMap = new HashMap<>();
+    public final Map<Long, WorkspacePropertyType> propertyTypeMap = new HashMap<>();
 
     public final Map<Long,Long> newToOriginalId = new HashMap<>();
     public final Map<Long, Association> originalIdToAssociation = new HashMap<>();
-    public final Set<Instance> previousInstances = new HashSet<>();
+    public final Set<WorkspaceElement> previousInstances = new HashSet<>();
     public final Set<RefFixUpInterFace> refFixUps = new HashSet<>();
-    public final Set<Instance> createdInstances = new HashSet<>();
+    public final Set<WorkspaceElement> createdInstances = new HashSet<>();
 
     public WriterTypeManager(Workspace workspace) {
 
         Set<LanguageWorkspace> languageWorkspaces = getAllLanguageWorkspaces();
 
+        Set<WorkspacePropertyType> existingPropertyTypes =  new HashSet<>();
+        Set<WorkspaceElementType> existingInstanceTypes =  new HashSet<>();
+        languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getWorkspaceElementTypes().stream()).forEach(workspaceElementType -> {
+            existingPropertyTypes.addAll(workspaceElementType.getAllPropertyTypes());
+            existingInstanceTypes.add(workspaceElementType);
 
-        Set<InstanceType> existingInstanceTypes =  languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getInstanceTypes().stream()).collect(Collectors.toSet());
-        Set<PropertyType> existingPropertyTypes =  languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getPropertyTypes().stream()).collect(Collectors.toSet());
+        });
+
+
         fillMap(instanceTypeMap,existingInstanceTypes);
         fillMap(propertyTypeMap,existingPropertyTypes);
 
-        getAllPreviousInstances(workspace,Folder.ROOT);
+        getAllPreviousInstances(workspace,DesignSpace.ROOT_FOLDER);
 
 
     }
 
-    private <T extends ElementType> void fillMap(Map<Long,  T> map, Set<T> set){
+    private <T extends WorkspaceElement> void fillMap(Map<Long,  T> map, Set<T> set){
         for (T type : set){
             map.put(type.getId(),type);
         }
@@ -40,7 +46,7 @@ public class WriterTypeManager {
 
     private Set<LanguageWorkspace> getAllLanguageWorkspaces(){
         Set<LanguageWorkspace>  set = new HashSet<>();
-        recursiveGetLeafWorkspace(set,LanguageWorkspace.ROOT);
+        recursiveGetLeafWorkspace(set,DesignSpace.ROOT_LANGUAGE);
         return set;
     }
 
@@ -58,21 +64,21 @@ public class WriterTypeManager {
     }
 
     private void getAllPreviousInstances( Workspace workspace,Folder folder) {
-       previousInstances.addAll( folder.getInstances(workspace));
+       previousInstances.addAll( folder.getWorkspaceElementContents(workspace));
        folder.getSubFolders().forEach(subfolder -> getAllPreviousInstances(workspace,subfolder));
     }
 
-    private Set<Instance> getCreatedInstancesOfId(Long originalID,Workspace workspace) {
+    private Set<WorkspaceElement> getCreatedInstancesOfId(Long originalID,Workspace workspace) {
         // idea for this is to collect all created Instances so that the ref can choose the closest
 
-        Set<Instance>  res = new HashSet<>();
+        Set<WorkspaceElement>  res = new HashSet<>();
         for (Map.Entry<Long,Long> entry : newToOriginalId.entrySet()){
             if (Objects.equals(entry.getValue(), originalID)) {
                 res.addAll(createdInstances.stream().filter(instance -> instance.getId() == entry.getKey()).collect(Collectors.toSet()));
             }
         }
         // case res no instances where created
-        if (res.isEmpty()) res.addAll(Folder.ROOT.getInstances(workspace).stream().filter(instance -> instance.getId() == originalID).collect(Collectors.toSet()));
+        if (res.isEmpty()) res.addAll(DesignSpace.ROOT_FOLDER.getWorkspaceElementContents(workspace).stream().filter(instance -> instance.getId() == originalID).collect(Collectors.toSet()));
 
         return  res;
     }

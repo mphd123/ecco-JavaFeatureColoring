@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace;
 
-import at.jku.isse.designspace.core.foundation.Cardinality;
+
+import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.ArtifactReader;
@@ -47,12 +48,12 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
         instanceTypeNodes = new HashMap<>();
         workspace = base.workspace();
-        Folder commitFolder = workspace.its(base.folder());
+        Folder commitFolder = workspace.its(base.folder()).getFolder();
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
         Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
 
-        listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getPath()),this));
+        listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getQualifiedName()),this));
         return Set.of(pluginNode);
     }
 
@@ -60,26 +61,26 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Node.Op folderNode = (isCommitFolder) ?  entityFactory.createOrderedNode(new CommitFolderArtefact()) : entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
         try {
 
-            Collection<Instance> instances = folder.getInstances(workspace);
+            Collection<WorkspaceElement> instances = folder.getWorkspaceElementContents(workspace);
 
             // instances contains other instances from other workspaces
-            HashSet<InstanceType> addedInstanceTypes = new HashSet<>();
+            HashSet<WorkspaceElementType> addedInstanceTypes = new HashSet<>();
             if (instances != null) {
-                for (Instance instance : instances){
+                for (WorkspaceElement instance : instances){
                     // skip if the instance is not from another workspace
                     // check if this is okay as otherwise duplicated instances would be added to the instanceTypes
                     if(! instance.getWorkspace().equals(workspace)) continue;
 
-                    InstanceType instanceType = instance.getInstanceType();
+                    WorkspaceElementType instanceType = instance.getInstanceOf();
                     if (instanceType == null) continue;
-                    instanceType = workspace.its(instanceType);
+                    instanceType = workspace.its(instanceType).getInstanceOf();
                     if (instanceType == null) continue;
 
                     if(!addedInstanceTypes.contains(instanceType)){
                         addedInstanceTypes.add(instanceType);
                         handleInstanceType(folderNode,instanceType);
                     }
-                    Instance workspaceInstance = workspace.its(instance);
+                    WorkspaceElement workspaceInstance = workspace.its(instance);
                     if (workspaceInstance != null) {
                         handleInstance(workspaceInstance);
                     }
@@ -104,33 +105,34 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         }
     }
 
-    private void handleInstanceType(Node.Op folderNode,InstanceType instanceType){
-        instanceType = workspace.its(instanceType);
-        AtomicReference<Long> superId = new AtomicReference<>();
-        Optional.of(instanceType.getSuperType()).ifPresentOrElse((type) -> superId.set(type.getId()),() -> superId.set(null));
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()),superId.get()));
+    private void handleInstanceType(Node.Op folderNode,WorkspaceElementType instanceType){
+        instanceType = workspace.its(instanceType).getInstanceOf();
+        AtomicReference<Collection<WorkspaceElementType>> superId = new AtomicReference<>();
+        Optional.of(instanceType.getAllSubTypes()).ifPresentOrElse(superId::set,() -> superId.set(null));
+        // here check if it supplies the languageWorkspaceName
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()), instanceType.getWorkspace().getName(),superId.get()));
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
         folderNode.addChild(instanceTypeNode);
     }
 
-    private void handleInstance(Instance instance) throws ExecutionControl.NotImplementedException {
+    private void handleInstance(WorkspaceElement instance) throws ExecutionControl.NotImplementedException {
         instance = workspace.its(instance);
-        InstanceType instanceType = instance.getInstanceType();
-        instanceType = workspace.its(instanceType);
+        WorkspaceElementType instanceType = instance.getInstanceOf();
+        instanceType = workspace.its(instanceType).getInstanceOf();
         if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
         Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
         Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
         instanceTypeNode.addChild(instanceNode );
-        Collection<PropertyType> propertyTypes = instanceType.getPropertyTypes();
+        Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
         handleProperties(instance,instanceNode,propertyTypes);
     }
 
-    private void handleProperties(Instance instance, Node.Op instanceNode, Collection<PropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
+    private void handleProperties(WorkspaceElement instance, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
 
-        for (PropertyType pt : propertyTypes) {
-            if (pt instanceof  InitPropertyType) continue;
-            // currently not sure how to handle
-            Property property = instance.getProperty(pt);
+        for (WorkspacePropertyType pt : propertyTypes) {
+            //if (pt instanceof  InitPropertyType) continue;/ currently not sure how to handle
+
+            WorkspaceProperty<Object> property = instance.getOrCreateProperty(pt);
             if (property.getName() != null &&
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
@@ -144,7 +146,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     private PropertyArtefactInterface createPropArtefact(Long id, String name, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
         return switch (cardinality) {
             case MAP -> new MapPropertyArtefact(id, name, cardinality);
-            case SET, LIST,ORDERED_SET -> new ListSetPropertyArtefact(id, name, cardinality);
+            case UNORDERED_SET, LIST, ORDERED_SET -> new ListSetPropertyArtefact(id, name, cardinality);
             case SINGLE -> new SinglePropertyArtefact(id, name, cardinality);
             default -> throw new ExecutionControl.NotImplementedException("Unsupported Cardinality");
         };

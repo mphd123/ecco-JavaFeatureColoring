@@ -1,8 +1,8 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
 import at.jku.isse.designspace.core.model.Folder;
-import at.jku.isse.designspace.core.model.Instance;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
 
 import java.util.*;
 
@@ -20,9 +20,9 @@ public class RefIdSearcher {
         this.newToOriginalId = Map.copyOf(newToOriginalId);
     }
 
-    public Optional<Instance> getClosestInstance(Folder folder ) {
+    public Optional<WorkspaceElement> getClosestInstance(Folder folder ) {
         // revisit not sure about getInstances workspace
-        Optional<Instance> result  = checkInstances(folder);
+        Optional<WorkspaceElement> result  = checkInstances(folder);
         searchedFolders.add(folder);
         if(result.isPresent()) return result;
         if(folder.getParentFolder()== null) return result;
@@ -41,8 +41,8 @@ public class RefIdSearcher {
         return result;
     }
 
-    private Optional<Instance> checkInstances(Folder folder) {
-        for (Instance otherInstance : folder.getInstances(workspace)) {
+    private Optional<WorkspaceElement> checkInstances(Folder folder) {
+        for (WorkspaceElement otherInstance : folder.getWorkspaceElementContents(workspace)) {
             if (newToOriginalId.containsKey(otherInstance.getId()) && Objects.equals(newToOriginalId.get(otherInstance.getId()), originalId)){
                 return Optional.of(otherInstance);
             }
@@ -50,8 +50,8 @@ public class RefIdSearcher {
         return Optional.empty();
     }
 
-    private Optional<Instance> checkSubFolders(Folder folder){
-        Optional<Instance> result = checkInstances(folder);
+    private Optional<WorkspaceElement> checkSubFolders(Folder folder){
+        Optional<WorkspaceElement> result = checkInstances(folder);
         if(result.isPresent()) return result;
 
         for (Folder subFolder : folder.getSubFolders()) {

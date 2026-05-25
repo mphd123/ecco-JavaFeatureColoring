@@ -1,8 +1,10 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
-import at.jku.isse.designspace.core.foundation.Cardinality;
-import at.jku.isse.designspace.core.foundation.Key;
+
+
+import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.core.model.*;
+
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
@@ -54,8 +56,8 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
     }
 
     protected void addValueNode(Node.Op propertyNode, Object value, EntityFactory entityFactory, IdMapper idMapper){
-        if (value instanceof Instance instanceValue) {
-            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact( idMapper.getOriginalId(instanceValue.getId())  , instanceValue.getName(),instanceValue.getInstanceType().getName())));
+        if (value instanceof WorkspaceElement instanceValue) {
+            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact( idMapper.getOriginalId(instanceValue.getId())  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
         }else{
             propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
         }
