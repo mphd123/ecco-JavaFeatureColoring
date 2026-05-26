@@ -27,7 +27,7 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
 
     public PropertyArtefact(Long id, String name, Cardinality cardinality) {
         this.id = id;
-        this.name = name;
+        this.name = name; // name needs to be in hte from of WorkspaceElementTypeQualifiedName::
         this.cardinality = cardinality;
     }
 

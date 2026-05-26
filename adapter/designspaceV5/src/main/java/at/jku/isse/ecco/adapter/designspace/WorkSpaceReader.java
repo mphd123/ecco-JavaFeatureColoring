@@ -48,7 +48,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
         instanceTypeNodes = new HashMap<>();
         workspace = base.workspace();
-        Folder commitFolder = workspace.its(base.folder()).getFolder();
+        Folder commitFolder = base.folder();
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
         Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
@@ -72,8 +72,9 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                     if(! instance.getWorkspace().equals(workspace)) continue;
 
                     WorkspaceElementType instanceType = instance.getInstanceOf();
+                    // ReferenceElementType l = instance.getReferenceElement(); // switch to reference later
                     if (instanceType == null) continue;
-                    instanceType = workspace.its(instanceType).getInstanceOf();
+                    //instanceType = workspace.its(instanceType).getInstanceOf();
                     if (instanceType == null) continue;
 
                     if(!addedInstanceTypes.contains(instanceType)){
@@ -83,7 +84,8 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                     WorkspaceElement workspaceInstance = workspace.its(instance);
                     if (workspaceInstance != null) {
                         handleInstance(workspaceInstance);
-                    }
+                    } else handleInstance(instance); // for testing fallback sicne its doesst seem to work in new version
+
                 }
                 handleSubFolders(folder,folderNode);
                 parentFolderNode.addChild(folderNode);
@@ -106,28 +108,26 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     }
 
     private void handleInstanceType(Node.Op folderNode,WorkspaceElementType instanceType){
-        instanceType = workspace.its(instanceType).getInstanceOf();
         AtomicReference<Collection<WorkspaceElementType>> superId = new AtomicReference<>();
         Optional.of(instanceType.getAllSubTypes()).ifPresentOrElse(superId::set,() -> superId.set(null));
         // here check if it supplies the languageWorkspaceName
-        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()), instanceType.getWorkspace().getName(),superId.get()));
+        String languageWorkSpaceName = instanceType.getWorkspace().getName();
+        Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()), languageWorkSpaceName,superId.get()));
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
         folderNode.addChild(instanceTypeNode);
     }
 
     private void handleInstance(WorkspaceElement instance) throws ExecutionControl.NotImplementedException {
-        instance = workspace.its(instance);
         WorkspaceElementType instanceType = instance.getInstanceOf();
-        instanceType = workspace.its(instanceType).getInstanceOf();
         if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
         Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
         Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
         instanceTypeNode.addChild(instanceNode );
         Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
-        handleProperties(instance,instanceNode,propertyTypes);
+        handleProperties(instance, instanceType,instanceNode,propertyTypes);
     }
 
-    private void handleProperties(WorkspaceElement instance, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
+    private void handleProperties(WorkspaceElement instance,WorkspaceElementType instanceType, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
 
         for (WorkspacePropertyType pt : propertyTypes) {
             //if (pt instanceof  InitPropertyType) continue;/ currently not sure how to handle
@@ -137,17 +137,18 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
                     !property.getName().equals("name")) {
-                PropertyArtefactInterface artefact =  createPropArtefact(property.getId(), property.getName(), pt.getCardinality());
+                PropertyArtefactInterface artefact =  createPropArtefact(property.getId(),instanceType, property.getName(), pt.getCardinality());
                 artefact.createNode(instanceNode,entityFactory,property, idMapper);
             }
         }
     }
 
-    private PropertyArtefactInterface createPropArtefact(Long id, String name, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
+    private PropertyArtefactInterface createPropArtefact(Long id, WorkspaceElementType instanceType, String propName, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
+        String qualifiedPropertyName = instanceType.getQualifiedName() + "::" + propName;
         return switch (cardinality) {
-            case MAP -> new MapPropertyArtefact(id, name, cardinality);
-            case UNORDERED_SET, LIST, ORDERED_SET -> new ListSetPropertyArtefact(id, name, cardinality);
-            case SINGLE -> new SinglePropertyArtefact(id, name, cardinality);
+            case MAP -> new MapPropertyArtefact(id, qualifiedPropertyName, cardinality);
+            case UNORDERED_SET, LIST, ORDERED_SET -> new ListSetPropertyArtefact(id, qualifiedPropertyName, cardinality);
+            case SINGLE -> new SinglePropertyArtefact(id, qualifiedPropertyName, cardinality);
             default -> throw new ExecutionControl.NotImplementedException("Unsupported Cardinality");
         };
     }
