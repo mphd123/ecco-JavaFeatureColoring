@@ -1,7 +1,6 @@
 package at.jku.isse.ecco.adapter.designspace.util.refFixUp;
 
-import at.jku.isse.designspace.core.model.Instance;
-import at.jku.isse.designspace.core.model.PropertyType;
+
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceElement;
 import at.jku.isse.designspace.core.model.WorkspacePropertyType;

@@ -22,6 +22,8 @@ repositories {
 dependencies {
     implementation("at.jku.isse.designspace:core:5.0")
 
+    implementation project(':ecco-service')
+
 
     testImplementation platform('org.junit:junit-bom:5.10.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
