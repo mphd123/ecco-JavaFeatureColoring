@@ -23,7 +23,7 @@ public class WriterTypeManager {
 
         Set<WorkspacePropertyType> existingPropertyTypes =  new HashSet<>();
         Set<WorkspaceElementType> existingInstanceTypes =  new HashSet<>();
-        languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getWorkspaceElementTypes().stream()).forEach(workspaceElementType -> {
+        languageWorkspaces.stream().flatMap( languageWorkspace -> languageWorkspace.getElementTypes().stream()).forEach(workspaceElementType -> {
             existingPropertyTypes.addAll(workspaceElementType.getAllPropertyTypes());
             existingInstanceTypes.add(workspaceElementType);
 

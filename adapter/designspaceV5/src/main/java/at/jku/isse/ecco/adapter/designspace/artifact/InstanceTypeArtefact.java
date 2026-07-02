@@ -48,7 +48,7 @@ public class InstanceTypeArtefact implements ArtifactData {
         } else {
             // need to support handle supertypes
             // todo and handle the id reassignment at the end
-            instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createWorkspaceElementType( name);
+            instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createElementType( name);
             writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
             writerTypeManager.instanceTypeMap.put(id, instanceType);
         }
