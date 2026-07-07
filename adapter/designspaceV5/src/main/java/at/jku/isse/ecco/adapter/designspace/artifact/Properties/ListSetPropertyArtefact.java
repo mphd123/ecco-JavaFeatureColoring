@@ -1,7 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 
-import at.jku.isse.designspace.commons.CMDOperation;
+
 import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.commons.OrderedSet;
 import at.jku.isse.designspace.core.model.*;

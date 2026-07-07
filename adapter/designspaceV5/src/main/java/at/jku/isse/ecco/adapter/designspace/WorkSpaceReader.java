@@ -4,9 +4,11 @@ package at.jku.isse.ecco.adapter.designspace;
 import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.*;
+import at.jku.isse.ecco.adapter.designspace.exception.ConflictingElements;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
@@ -44,6 +46,23 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     private Workspace workspace;
 
+    private EccoException  exception = null;
+
+
+    // to be correct here should only be one per Name if a name is shared there is a conflict
+    private Map<String,Set<WorkspaceElement>> nameToElement = new HashMap<>();
+
+    private void addNameToElement(WorkspaceElement e){
+        if(nameToElement.containsKey(e.getName())) {
+            nameToElement.get(e.getName()).add(e);
+        }else {
+            Set<WorkspaceElement> set = new HashSet<>();
+            set.add(e);
+            nameToElement.put(e.getName(),set);
+        }
+    }
+
+
     @Override
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
         instanceTypeNodes = new HashMap<>();
@@ -54,6 +73,14 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
 
         listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getQualifiedName()),this));
+        List<Set<WorkspaceElement>> conflictingElements = new ArrayList<>();
+        nameToElement.values().forEach(set -> {
+            if (set.size() > 1) {
+                conflictingElements.add(set);
+            }
+        });
+        if(!conflictingElements.isEmpty()) throw new ConflictingElements(conflictingElements);
+        if(exception != null) throw exception; // backup throw should be handled by the one above
         return Set.of(pluginNode);
     }
 
@@ -112,17 +139,38 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         Optional.of(instanceType.getAllSubTypes()).ifPresentOrElse(superId::set,() -> superId.set(null));
         // here check if it supplies the languageWorkspaceName
         String languageWorkSpaceName = instanceType.getWorkspace().getName();
+        addNameToElement(instanceType);
         Node.Op instanceTypeNode = entityFactory.createNode(new InstanceTypeArtefact(instanceType.getName(),idMapper.getOriginalId(instanceType.getId()), languageWorkSpaceName,superId.get()));
         instanceTypeNodes.put(instanceType.getId(),instanceTypeNode);
-        folderNode.addChild(instanceTypeNode);
+        try{
+            folderNode.addChild(instanceTypeNode);
+        }catch(EccoException e){
+            if (e.getMessage().equals("An equivalent child is already contained. If multiple equivalent children are allowed use an ordered node.")){
+                // in this case there is a duplicate name catch this exception because i want to collect all duplicate names for convenience
+                exception = e;
+            }else
+                throw e;
+        }
+
     }
 
     private void handleInstance(WorkspaceElement instance) throws ExecutionControl.NotImplementedException {
         WorkspaceElementType instanceType = instance.getInstanceOf();
         if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
+        addNameToElement(instance);
         Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
-        Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
-        instanceTypeNode.addChild(instanceNode );
+        Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getName()));
+
+
+        try{
+            instanceTypeNode.addChild(instanceNode );
+        }catch(EccoException e){
+            if (e.getMessage().equals("An equivalent child is already contained. If multiple equivalent children are allowed use an ordered node.")){
+                // in this case there is a duplicate name catch this exception because i want to collect all duplicate names for convenience
+                exception = e;
+            }else
+                throw e;
+        }
         Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
         handleProperties(instance, instanceType,instanceNode,propertyTypes);
     }

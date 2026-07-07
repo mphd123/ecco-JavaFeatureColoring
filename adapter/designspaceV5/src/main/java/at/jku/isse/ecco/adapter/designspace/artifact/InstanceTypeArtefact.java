@@ -50,7 +50,7 @@ public class InstanceTypeArtefact implements ArtifactData {
             // todo and handle the id reassignment at the end
             instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createElementType( name);
             writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
-            writerTypeManager.instanceTypeMap.put(id, instanceType);
+            writerTypeManager.instanceTypeMap.put(name, instanceType);
         }
         for (Node instanceNode : typeNode.getChildren()) {
             InstanceArtefact instanceArtefact = (InstanceArtefact) instanceNode.getArtifact().getData();
@@ -62,7 +62,7 @@ public class InstanceTypeArtefact implements ArtifactData {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         InstanceTypeArtefact that = (InstanceTypeArtefact) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(superIds, that.superIds);
+        return Objects.equals(name, that.name) && Objects.equals(superIds, that.superIds);
     }
 
     @Override
