@@ -23,13 +23,7 @@ public class FolderArtefact extends CommitFolderArtefact {
         this.id = id;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        FolderArtefact that = (FolderArtefact) o;
-        return Objects.equals(name, that.name);
 
-    }
 
     @Override
     public int hashCode() {
@@ -55,5 +49,13 @@ public class FolderArtefact extends CommitFolderArtefact {
                     instanceTypeArtefact.build(workspace,folder,child,writerTypeManager);
                 }
             }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        FolderArtefact that = (FolderArtefact) o;
+        return Objects.equals(name, that.name) && Objects.equals(id, that.id);
     }
 }

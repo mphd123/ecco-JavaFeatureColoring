@@ -8,8 +8,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WriterTypeManager {
-    public final Map<String, WorkspaceElementType> instanceTypeMap = new HashMap<>();
-    public final Map<String, WorkspacePropertyType> propertyTypeMap = new HashMap<>();
+    public final Map<Long, WorkspaceElementType> instanceTypeMap = new HashMap<>();
+    public final Map<Long, WorkspacePropertyType> propertyTypeMap = new HashMap<>();
 
     public final Map<Long,Long> newToOriginalId = new HashMap<>();
     public final Map<Long, Association> originalIdToAssociation = new HashMap<>();
@@ -38,9 +38,9 @@ public class WriterTypeManager {
 
     }
 
-    private <T extends WorkspaceElement> void fillMap(Map<String,  T> map, Set<T> set){
+    private <T extends WorkspaceElement> void fillMap(Map<Long,  T> map, Set<T> set){
         for (T type : set){
-            map.put(type.getName(),type);
+            map.put(type.getId(),type);
         }
     }
 

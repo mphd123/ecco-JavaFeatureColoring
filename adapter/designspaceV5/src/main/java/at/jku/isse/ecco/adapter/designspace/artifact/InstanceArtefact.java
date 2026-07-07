@@ -12,11 +12,11 @@ import jdk.jshell.spi.ExecutionControl;
 
 import java.util.Objects;
 
-public record InstanceArtefact(String name, Long id, String instanceTypeName) implements ArtifactData {
+public record InstanceArtefact(String name, Long id, Long instanceTypeId) implements ArtifactData {
 
 
     public void build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
-        WorkspaceElementType instanceType = writerTypeManager.instanceTypeMap.get(instanceTypeName);
+        WorkspaceElementType instanceType = writerTypeManager.instanceTypeMap.get( instanceTypeId);
         if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
         WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
         writerTypeManager.newToOriginalId.put(instance.getId(), id);
@@ -32,11 +32,11 @@ public record InstanceArtefact(String name, Long id, String instanceTypeName) im
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         InstanceArtefact that = (InstanceArtefact) o;
-        return Objects.equals(name, that.name) && Objects.equals(instanceTypeName, that.instanceTypeName);
+        return Objects.equals(name, that.name) && Objects.equals(id, that.id) && Objects.equals( instanceTypeId, that. instanceTypeId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, id, instanceTypeName);
+        return Objects.hash(name, id,  instanceTypeId);
     }
 }

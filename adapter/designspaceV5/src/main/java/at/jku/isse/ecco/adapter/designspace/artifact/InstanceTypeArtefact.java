@@ -37,8 +37,8 @@ public class InstanceTypeArtefact implements ArtifactData {
 
     public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         WorkspaceElementType instanceType;
-        if (writerTypeManager.instanceTypeMap.containsKey(name)) {
-            instanceType = writerTypeManager.instanceTypeMap.get(name);
+        if (writerTypeManager.instanceTypeMap.containsKey(id)) {
+            instanceType = writerTypeManager.instanceTypeMap.get(id);
             if (!instanceType.getName().equals(name))
                 throw new InstanceTypeException(String.format("the names of the artefact and the already existing Type are not equal artefact[%s] . existing[%s]", name, instanceType.getName()));
 
@@ -47,7 +47,7 @@ public class InstanceTypeArtefact implements ArtifactData {
             // todo and handle the id reassignment at the end
             instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createElementType( name);
             writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
-            writerTypeManager.instanceTypeMap.put(name, instanceType);
+            writerTypeManager.instanceTypeMap.put(instanceType.getId(), instanceType);
         }
         for (Node instanceNode : typeNode.getChildren()) {
             InstanceArtefact instanceArtefact = (InstanceArtefact) instanceNode.getArtifact().getData();
@@ -59,7 +59,7 @@ public class InstanceTypeArtefact implements ArtifactData {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         InstanceTypeArtefact that = (InstanceTypeArtefact) o;
-        return Objects.equals(name, that.name) && Objects.equals(superIds, that.superIds);
+        return Objects.equals(name, that.name) && Objects.equals(id, that.id) && Objects.equals(superIds, that.superIds);
     }
 
     @Override
