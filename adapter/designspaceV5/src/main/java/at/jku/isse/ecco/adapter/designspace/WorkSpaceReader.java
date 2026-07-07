@@ -192,7 +192,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     }
 
     private PropertyArtefactInterface createPropArtefact(Long id, WorkspaceElementType instanceType, String propName, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
-        String qualifiedPropertyName = instanceType.getQualifiedName() + "::" + propName;
+        String qualifiedPropertyName =  propName;// instanceType.getQualifiedName() + "::" + propName; // changed to be finable
         return switch (cardinality) {
             case MAP -> new MapPropertyArtefact(id, qualifiedPropertyName, cardinality);
             case UNORDERED_SET, LIST, ORDERED_SET -> new ListSetPropertyArtefact(id, qualifiedPropertyName, cardinality);

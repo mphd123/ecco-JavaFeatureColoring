@@ -37,14 +37,11 @@ public class InstanceTypeArtefact implements ArtifactData {
 
     public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         WorkspaceElementType instanceType;
-        if (writerTypeManager.instanceTypeMap.containsKey(id)) {
-            if (writerTypeManager.instanceTypeMap.get(id).getName().equals(name)) {
-                instanceType = writerTypeManager.instanceTypeMap.get(id);
-                if (!instanceType.getName().equals(name))
-                    throw new InstanceTypeException(String.format("the names of the artefact and the already existing Type are not equal artefact[%s] . existing[%s]", name, instanceType.getName()));
-            } else {
-                throw new TypeMangerException("instanceTypeMap has something with the same id but a different name");
-            }
+        if (writerTypeManager.instanceTypeMap.containsKey(name)) {
+            instanceType = writerTypeManager.instanceTypeMap.get(name);
+            if (!instanceType.getName().equals(name))
+                throw new InstanceTypeException(String.format("the names of the artefact and the already existing Type are not equal artefact[%s] . existing[%s]", name, instanceType.getName()));
+
         } else {
             // need to support handle supertypes
             // todo and handle the id reassignment at the end

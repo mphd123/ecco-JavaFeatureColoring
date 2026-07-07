@@ -33,7 +33,8 @@ public class SinglePropertyArtefact extends PropertyArtefact {
 
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         Node valueNode = propertyNode.getChildren().get(0);
-        WorkspacePropertyType propertyType = DesignSpace.getPropertyType(name);//isntance.getPropertyType(name); // not sure
+
+        WorkspacePropertyType propertyType =  instance.getInstanceOf().getPropertyType(name);
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);
     }
 

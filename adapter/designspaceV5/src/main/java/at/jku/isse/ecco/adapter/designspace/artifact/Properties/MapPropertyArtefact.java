@@ -42,7 +42,7 @@ public class MapPropertyArtefact extends PropertyArtefact{
     }
 
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
-        WorkspacePropertyType propertyType = DesignSpace.getPropertyType(name);//isntance.getPropertyType(name); // not sure
+        WorkspacePropertyType propertyType = instance.getInstanceOf().getPropertyType(name);
         Map<Key,ValueArtefact<?>> map = new HashMap<>();
         for (Node keyNode : propertyNode.getChildren()) {
             ValueArtefact<?> keyArtefact = getValueArtefact(keyNode);

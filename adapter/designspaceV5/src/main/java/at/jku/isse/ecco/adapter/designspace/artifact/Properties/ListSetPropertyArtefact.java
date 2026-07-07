@@ -43,7 +43,7 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
     }
 
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
-        WorkspacePropertyType propertyType = DesignSpace.getPropertyType(name);//isntance.getPropertyType(name); // not sure
+        WorkspacePropertyType propertyType = instance.getInstanceOf().getPropertyType(name);
         // for sets there should be no duplicates in hte nodes
         List<ValueArtefact<?>> list = new ArrayList<>();
         for (Node valueNode : propertyNode.getChildren()) {
