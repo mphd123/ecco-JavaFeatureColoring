@@ -24,7 +24,7 @@ public class MapFixUp extends AbstractRefFixUp{
     public void fixUp(Workspace workspace, Map<Long, Long> newToOriginalId) {
         Map<Key,Object> instanceMap = new HashMap<>();
         refMap.forEach((key, refID) -> {
-            Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).getClosestInstance(instance.getFolder());
+            Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).search(instance.getFolder());
             if (refInstance.isEmpty()) throw new RuntimeException("could not find instance for refId");
             instance.add(propertyType,key,refInstance.get());
         });

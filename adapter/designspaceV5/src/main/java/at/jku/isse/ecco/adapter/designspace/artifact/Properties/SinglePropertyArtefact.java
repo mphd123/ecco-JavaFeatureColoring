@@ -11,6 +11,7 @@ import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefac
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.RefProeprtyFixupRecord;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.adapter.designspace.util.refFixUp.SingleFixUp;
@@ -25,14 +26,23 @@ public class SinglePropertyArtefact extends PropertyArtefact {
     }
 
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper){
+    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper) {
         Node.Op single = entityFactory.createNode(this);
         InstanceNode.addChild(single);
-        addValueNode(single, property.get(),entityFactory,idMapper);
+        addValueNode(single, property.get(), entityFactory, idMapper);
+
+
+        if (property.get() == null) Logger.log("SingleProperty Value= null");
+        else Logger.log("SingleProperty Value= " + property.get().toString());
     }
 
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         Node valueNode = propertyNode.getChildren().get(0);
+        
+        // debugging breakpoint
+        if (instance.getName().contains("abc")) {
+            int i = 0;
+        }
 
         WorkspacePropertyType propertyType =  instance.getInstanceOf().getPropertyType(name);
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);

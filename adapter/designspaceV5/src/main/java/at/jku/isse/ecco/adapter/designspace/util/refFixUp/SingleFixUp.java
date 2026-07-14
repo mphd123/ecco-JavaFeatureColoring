@@ -4,6 +4,7 @@ package at.jku.isse.ecco.adapter.designspace.util.refFixUp;
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceElement;
 import at.jku.isse.designspace.core.model.WorkspacePropertyType;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.RefIdSearcher;
 
 import java.util.Map;
@@ -20,8 +21,14 @@ public class SingleFixUp extends AbstractRefFixUp{
 
     @Override
     public void fixUp(Workspace workspace, Map<Long,Long> newToOriginalId) {
-        Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).getClosestInstance(instance.getFolder());
+        if (instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if")) {
+          int i = 0;
+        }
+
+        Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).search(instance.getFolder());
         if (refInstance.isEmpty()) throw new RuntimeException();
+        Logger.log("RefFixupSingle[type = " + propertyType.getName() +" ]for originalID= " + refID + " Element with id" + refInstance.get().getId() + "was found" ,instance);
+
         instance.set(propertyType,refInstance.get());
 
     }

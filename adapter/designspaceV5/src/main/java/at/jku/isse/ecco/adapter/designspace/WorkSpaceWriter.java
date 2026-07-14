@@ -6,6 +6,7 @@ import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.artifact.CommitFolderArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.FolderArtefact;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.service.listener.WriteListener;
 import at.jku.isse.ecco.tree.Node;
@@ -38,7 +39,9 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             }
         }
 
+        Logger.enabled = true;
         writerTypeManager.resolveRefProperties(workspace);
+        System.out.println("Debug ---------- FixupRecord ----------- \n" + writerTypeManager.FixupReport());
 
         } catch (Exception e) {
             e.printStackTrace();

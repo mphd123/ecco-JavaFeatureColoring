@@ -26,7 +26,7 @@ public class CollectionFixUp extends AbstractRefFixUp{
         else throw new RuntimeException("CollectionFixUp received invalid Cardinality");
 
         for (Long refID : refCollection) {
-            Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).getClosestInstance(instance.getFolder());
+            Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).search(instance.getFolder());
             if (refInstance.isEmpty()) throw new RuntimeException("could not find instance for refId");
             refInstances.add(refInstance.get());
         }

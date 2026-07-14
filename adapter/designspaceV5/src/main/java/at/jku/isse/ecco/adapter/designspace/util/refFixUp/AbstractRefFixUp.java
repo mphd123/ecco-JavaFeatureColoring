@@ -15,4 +15,6 @@ public abstract class AbstractRefFixUp implements RefFixUpInterFace {
         this.propertyType = propertyType;
     }
 
+    public WorkspaceElement getInstance() {return instance;}
+
 }

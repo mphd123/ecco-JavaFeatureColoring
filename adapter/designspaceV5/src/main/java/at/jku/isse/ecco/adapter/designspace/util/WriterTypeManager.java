@@ -1,5 +1,6 @@
 package at.jku.isse.ecco.adapter.designspace.util;
 
+import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.designspace.util.refFixUp.RefFixUpInterFace;
 import at.jku.isse.ecco.core.Association;
@@ -85,6 +86,53 @@ public class WriterTypeManager {
 
     public void resolveRefProperties(Workspace workspace){
         refFixUps.forEach(refFixUpInterFace -> refFixUpInterFace.fixUp(workspace,newToOriginalId));
+    }
+
+
+    public String FixupReport(){
+        StringBuilder sb = new StringBuilder();
+        Set<WorkspaceElement> FixedUpElements = new HashSet<>();
+
+        refFixUps.forEach(refFixUpInterFace -> {
+            FixedUpElements.add(refFixUpInterFace.getInstance());
+        });
+
+        FixedUpElements.forEach(workspaceElement -> {
+            sb.append(workspaceElement.toString()).append(":\n")
+                    .append(detailRepresentation(workspaceElement)).append("\n");
+        });
+
+        return sb.toString();
+
+    }
+
+    private String detailRepresentation(WorkspaceElement element) {
+        StringBuilder sb = new StringBuilder();
+        for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
+            if (propType.getCardinality().equals(Cardinality.SINGLE))
+                if (element.get(propType) != null) {
+                    sb.append(propType.getName()).append(" Property{").append(element.get(propType)).append("}\n");
+                } else if (propType.getCardinality().equals(Cardinality.MAP)) {
+                    if (element.getMap(propType) != null) {
+                        continue;
+                    }
+                    sb.append(propType.getName()).append(" Properties{\n");
+                    element.getMap(propType).forEach((key, value) -> {
+                        sb.append(key).append(" : ").append(value).append("\n");
+                    });
+                    sb.append("}\n");
+                } else {
+                    if (element.getCollection(propType) != null) {
+                        continue;
+                    }
+                    sb.append(propType.getName()).append(" cardinality[").append(propType.getCardinality()).append("] ").append(" Properties{ \n");
+                    element.getCollection(propType).forEach(o -> {
+                        sb.append(o).append("\n");
+                    });
+                    sb.append("}\n");
+                }
+        }
+        return sb.toString();
     }
 
 

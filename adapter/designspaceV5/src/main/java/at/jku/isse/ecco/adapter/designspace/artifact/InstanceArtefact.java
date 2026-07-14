@@ -5,6 +5,7 @@ import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.PropertyArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
@@ -20,6 +21,7 @@ public record InstanceArtefact(String name, Long id, Long instanceTypeId) implem
         if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
         WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
         writerTypeManager.newToOriginalId.put(instance.getId(), id);
+        Logger.log(" instacne created old id was " + "id" + "new id is " + instance.getId(), instance);
 
         for (Node propertyTypeNode : instanceNode.getChildren()) {
             PropertyArtefact propertyArtefact = (PropertyArtefact) propertyTypeNode.getArtifact().getData();

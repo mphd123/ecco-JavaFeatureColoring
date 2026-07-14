@@ -9,6 +9,7 @@ import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.*;
 import at.jku.isse.ecco.adapter.designspace.artifact.Properties.*;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
@@ -102,6 +103,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
             }
         } catch (Exception e) {
             System.err.println("an error happened while reading from the folders error message  " +e);
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
         return folderNode;
@@ -153,7 +155,17 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                 throw e;
         }
         Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
+        // for debug breakpoint
+        if (instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if")) {
+            int i = 0;
+        }
+        if(Logger.isToBeLoggedType(instance)){
+            Logger.enabled = true;
+            Logger.log(" PropTypes for chosen instancetype",instance );
+        }
+
         handleProperties(instance, instanceType,instanceNode,propertyTypes);
+        if(Logger.isToBeLoggedType(instance)) Logger.enabled = false;
     }
 
     private void handleProperties(WorkspaceElement instance,WorkspaceElementType instanceType, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
@@ -161,7 +173,11 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         for (WorkspacePropertyType pt : propertyTypes) {
             //if (pt instanceof  InitPropertyType) continue;/ currently not sure how to handle
 
+            Logger.log("Property= " +pt.getName());
+
             WorkspaceProperty<Object> property = instance.getOrCreateProperty(pt);
+            // skip empty proeprties
+            if (property.getRaw() == null) continue;
             if (property.getName() != null &&
                     !property.getName().contains("@") &&
                     !property.getName().equals("modifiedBy") &&
@@ -173,7 +189,8 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     }
 
     private PropertyArtefactInterface createPropArtefact(Long id, WorkspaceElementType instanceType, String propName, Cardinality cardinality) throws ExecutionControl.NotImplementedException {
-        String qualifiedPropertyName =  propName;// instanceType.getQualifiedName() + "::" + propName; // changed to be finable
+
+        String qualifiedPropertyName =  propName;// instanceType.getQualifiedName() + "::" + propName; // changed to be findable
         return switch (cardinality) {
             case MAP -> new MapPropertyArtefact(id, qualifiedPropertyName, cardinality);
             case UNORDERED_SET, LIST, ORDERED_SET -> new ListSetPropertyArtefact(id, qualifiedPropertyName, cardinality);

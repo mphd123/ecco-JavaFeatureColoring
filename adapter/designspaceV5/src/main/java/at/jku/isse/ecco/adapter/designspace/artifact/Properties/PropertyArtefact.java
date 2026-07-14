@@ -10,6 +10,7 @@ import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
+import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.RefProeprtyFixupRecord;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.dao.EntityFactory;
@@ -57,10 +58,20 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
 
     protected void addValueNode(Node.Op propertyNode, Object value, EntityFactory entityFactory, IdMapper idMapper){
         if (value instanceof WorkspaceElement instanceValue) {
-            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact( idMapper.getOriginalId(instanceValue.getId())  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
+            Long originalId = idMapper.getOriginalId(instanceValue.getId());
+            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact( originalId  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
+            if (originalId == null)  Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
+                else  Logger.log("Debug Reader AddValueNode : Value= " +originalId);
+
+
+
         }else{
             propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
+            if (value == null)  Logger.log("Debug Reader AddValueNode :  Value= " +null);
+            else  Logger.log("Debug Reader AddValueNode :  Value= " +value.toString());
+
         }
+
     }
     protected  ValueArtefact<?> getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         if (valueNode.getArtifact().getData() instanceof ReferenceValueArtefact refArtefact) {

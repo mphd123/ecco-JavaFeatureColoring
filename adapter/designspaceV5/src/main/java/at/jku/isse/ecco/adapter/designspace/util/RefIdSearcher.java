@@ -5,6 +5,7 @@ import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceElement;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class RefIdSearcher {
 
@@ -18,6 +19,49 @@ public class RefIdSearcher {
         this.workspace = workspace;
         this.originalId = originalId;
         this.newToOriginalId = Map.copyOf(newToOriginalId);
+    }
+
+
+    public Optional<WorkspaceElement> search(Folder folder) {
+        List<Long> relevantIds = new ArrayList<>();
+        newToOriginalId.forEach((k,v)->{
+            if (v.equals(originalId)) {
+            relevantIds.add(k);
+            }
+        });
+
+        AtomicLong directFound = new AtomicLong(-1);
+
+        TreeMap<Integer,Long> parentSteps = new TreeMap<>(); 
+        relevantIds.forEach((id) -> {
+            WorkspaceElement element = workspace.getElement(id);
+            Folder elementFolder = element.getFolder();
+            if (elementFolder == folder) {
+                if(directFound.get() != -1) throw new RuntimeException("in Folder" + folder + "there are at least two elemnts who with id mapper share the original id ");;
+                directFound.set(id);
+                return;
+            }
+            Folder searchFolder = folder;
+            int steps = 0;
+            while (searchFolder != null) {
+                if (searchFolder.equals(elementFolder)) {
+                    Long nullCHeck = parentSteps.put(steps, id);
+                    if(nullCHeck != null) throw new RuntimeException("in Folder" + searchFolder + "there are at least two elemnts who with id mapper share the original id ");
+                }
+                searchFolder = searchFolder.getParentFolder();
+                steps++;
+            }
+        });
+        if (directFound.get() != -1) {
+            Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getElement(originalId).toString()
+            + " found element is  " + workspace.getElement(directFound.get()).toString());
+            return Optional.of(workspace.getElement(directFound.get()));
+
+        }
+        if(!parentSteps.isEmpty()) return Optional.of(workspace.getElement(parentSteps.keySet().stream().findFirst().get()));
+        // search in child Folders
+        else return Optional.empty();
+
     }
 
     public Optional<WorkspaceElement> getClosestInstance(Folder folder ) {
