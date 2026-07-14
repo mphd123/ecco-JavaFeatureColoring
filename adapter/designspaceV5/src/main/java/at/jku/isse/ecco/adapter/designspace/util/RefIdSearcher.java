@@ -53,7 +53,7 @@ public class RefIdSearcher {
             }
         });
         if (directFound.get() != -1) {
-            Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getElement(originalId).toString()
+            Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getElement(originalId)
             + " found element is  " + workspace.getElement(directFound.get()).toString());
             return Optional.of(workspace.getElement(directFound.get()));
 
