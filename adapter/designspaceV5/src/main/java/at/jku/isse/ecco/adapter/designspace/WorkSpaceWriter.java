@@ -39,6 +39,9 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             }
         }
 
+            workspace.acceptAllChanges();
+            workspace.conclude();
+            System.out.println("Debug ---------- BeforeFixupRecord ----------- \n" + writerTypeManager.FixupReport());
         Logger.enabled = true;
         writerTypeManager.resolveRefProperties(workspace);
         System.out.println("Debug ---------- FixupRecord ----------- \n" + writerTypeManager.FixupReport());
@@ -50,6 +53,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
         }
 
         workspace.acceptAllChanges();
+        //workspace.conclude();
 
         writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );
 
