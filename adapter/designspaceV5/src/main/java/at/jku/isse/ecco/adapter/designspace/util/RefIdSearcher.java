@@ -34,7 +34,7 @@ public class RefIdSearcher {
 
         TreeMap<Integer,Long> parentSteps = new TreeMap<>(); 
         relevantIds.forEach((id) -> {
-            WorkspaceElement element = workspace.getElement(id);
+            WorkspaceElement element = workspace.getWorkspaceElement(id);
             Folder elementFolder = element.getFolder();
             if (elementFolder == folder) {
                 if(directFound.get() != -1) throw new RuntimeException("in Folder" + folder + "there are at least two elemnts who with id mapper share the original id ");;
@@ -53,12 +53,12 @@ public class RefIdSearcher {
             }
         });
         if (directFound.get() != -1) {
-            Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getElement(originalId)
-            + " found element is  " + workspace.getElement(directFound.get()).toString());
-            return Optional.of(workspace.getElement(directFound.get()));
+            Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getWorkspaceElement(originalId)
+            + " found element is  " + workspace.getWorkspaceElement(directFound.get()).toString());
+            return Optional.of(workspace.getWorkspaceElement(directFound.get()));
 
         }
-        if(!parentSteps.isEmpty()) return Optional.of(workspace.getElement(parentSteps.keySet().stream().findFirst().get()));
+        if(!parentSteps.isEmpty()) return Optional.of(workspace.getWorkspaceElement(parentSteps.keySet().stream().findFirst().get()));
         // search in child Folders
         else return Optional.empty();
 
