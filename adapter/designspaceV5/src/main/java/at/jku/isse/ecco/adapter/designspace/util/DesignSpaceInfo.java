@@ -11,7 +11,7 @@ import at.jku.isse.ecco.adapter.designspace.exception.WorkspaceException;
 
 import java.util.Collection;
 
-public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMapper) {
+public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMapper,boolean printDebug) {
     public void checkIfInfoValid(DesignSpaceInfo info) {
         if (info.idMapper() == null) throw new IDMapperException("is null");
         if (info.idMapper().getCurrentRepId() == null || info.idMapper().getCurrentRepId().isBlank()) {

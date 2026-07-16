@@ -58,6 +58,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         instanceTypeNodes = new HashMap<>();
         workspace = base.workspace();
         Folder commitFolder = base.folder();
+        Logger.debug = base.printDebug();
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
         idMapper = base.idMapper();
         Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
@@ -155,17 +156,14 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                 throw e;
         }
         Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
-        // for debug breakpoint
-        if (instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if")) {
-            int i = 0;
-        }
+
         if(Logger.isToBeLoggedType(instance)){
-            Logger.enabled = true;
+            Logger.enabledAndThenDisabled = true;
             Logger.log(" PropTypes for chosen instancetype",instance );
         }
 
         handleProperties(instance, instanceType,instanceNode,propertyTypes);
-        if(Logger.isToBeLoggedType(instance)) Logger.enabled = false;
+        if(Logger.isToBeLoggedType(instance)) Logger.enabledAndThenDisabled = false;
     }
 
     private void handleProperties(WorkspaceElement instance,WorkspaceElementType instanceType, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {

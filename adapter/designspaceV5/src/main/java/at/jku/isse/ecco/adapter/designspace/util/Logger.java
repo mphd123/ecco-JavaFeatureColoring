@@ -3,9 +3,13 @@ package at.jku.isse.ecco.adapter.designspace.util;
 import at.jku.isse.designspace.core.model.WorkspaceElement;
 
 public class Logger {
-    public static boolean enabled = false;
+    // turn of or on
+    public static  boolean debug = false;
+    //limit to elements
+    public static boolean enabledAndThenDisabled = false;
     public static void log(String message, WorkspaceElement instance) {
-        if (!enabled)return;
+
+        if (!enabledAndThenDisabled || !debug)return;
         if(instance==null) {
             System.out.println("Debug "  + message);
         }else if (isToBeLoggedType(instance)) {

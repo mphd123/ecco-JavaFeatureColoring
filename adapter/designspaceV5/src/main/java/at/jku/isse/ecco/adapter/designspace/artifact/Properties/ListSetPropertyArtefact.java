@@ -57,7 +57,6 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
     private void setCollectionPropValue( WorkspaceElement instance, WorkspacePropertyType propertyType, Collection<ValueArtefact<?>> artefactCollection, WriterTypeManager writerTypeManager) {
         if(artefactCollection.isEmpty()) return;
         if (propertyType.isContained()) {
-            //System.out.println( "üüüüüüüüüüüü propType: "+ propertyType + "for instance " +instance +   " is contained");
             return;
         }
 

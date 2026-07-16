@@ -43,11 +43,6 @@ public class SinglePropertyArtefact extends PropertyArtefact {
 
 
         WorkspacePropertyType propertyType =  instance.getInstanceOf().getPropertyType(name);
-        // debugging breakpoint
-        if (instance.getName().contains("else")) {
-            int i = 0;
-            System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa got else should not happen");
-        }
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);
     }
 
@@ -56,7 +51,6 @@ public class SinglePropertyArtefact extends PropertyArtefact {
 
             // contained elements get there prop set by the container  so skip them
             if (propertyType.isContained()) {
-                //System.out.println( "üüüüüüüüüüüü propType: "+ propertyType + "for instance " +instance +   " is contained");
                 return;
             }
             writerTypeManager.refFixUps.add(new SingleFixUp(instance,propertyType,referenceValueArtefact.getValue()));

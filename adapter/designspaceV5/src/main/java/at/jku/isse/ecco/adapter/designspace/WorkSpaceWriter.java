@@ -4,7 +4,6 @@ import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.artifact.CommitFolderArtefact;
-import at.jku.isse.ecco.adapter.designspace.artifact.FolderArtefact;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
@@ -27,6 +26,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
     public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
         Workspace workspace = info.workspace();
         Folder checkoutFolder = info.folder(); // workspace.its();
+        Logger.debug = info.printDebug();
         WriterTypeManager writerTypeManager = new WriterTypeManager(workspace);
         Node pluginNode = input.stream().findFirst().orElse(null);
         if (pluginNode == null) throw new EccoException("the Workspace writer received an empty Node set");
@@ -41,9 +41,9 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
 
         workspace.acceptAllChanges();
         workspace.conclude();
-        Logger.enabled = true;
+        Logger.enabledAndThenDisabled = true;
         writerTypeManager.resolveRefProperties(workspace);
-        System.out.println("Debug ---------- FixupRecord ----------- \n" + writerTypeManager.FixupReport());
+        Logger.log("Debug ---------- FixupRecord ----------- \n" + writerTypeManager.FixupReport());
 
         } catch (Exception e) {
             e.printStackTrace();

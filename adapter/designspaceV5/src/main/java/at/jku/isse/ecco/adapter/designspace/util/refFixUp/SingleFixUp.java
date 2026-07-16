@@ -22,9 +22,6 @@ public class SingleFixUp extends AbstractRefFixUp{
 
     @Override
     public void fixUp(Workspace workspace, Map<Long,Long> newToOriginalId) {
-        if (instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if")) {
-          int i = 0;
-        }
 
         Optional<WorkspaceElement> refInstance = new RefIdSearcher(workspace, refID, newToOriginalId).search(instance.getFolder());
         if (refInstance.isEmpty()) throw new RuntimeException();
@@ -32,7 +29,7 @@ public class SingleFixUp extends AbstractRefFixUp{
 
         // with opposed properties when setting theirs it can cause all opposed to be set on it and i think it happens when it has already been set
         if(instance.get(propertyType) != null) {
-            System.out.println("Instance " + instance + "for property" + propertyType + " already has a value assumed from a different opposing property value was " + instance.get(propertyType)  );
+            Logger.log("Instance " + instance + "for property" + propertyType + " already has a value assumed from a different opposing property value was " + instance.get(propertyType)  );
         };
         instance.set(propertyType,refInstance.get());
         Logger.log("detail after set \n" + WriterTypeManager.detailRepresentation(instance));
