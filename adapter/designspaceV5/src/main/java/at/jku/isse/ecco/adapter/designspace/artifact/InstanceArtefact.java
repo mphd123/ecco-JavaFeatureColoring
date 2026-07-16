@@ -21,7 +21,7 @@ public record InstanceArtefact(String name, Long id, Long instanceTypeId) implem
         if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
         WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
         writerTypeManager.newToOriginalId.put(instance.getId(), id);
-        Logger.log(" instacne created old id was " + "id" + "new id is " + instance.getId(), instance);
+        Logger.log(" instance created old id was " + "id" + "new id is " + instance.getId(), instance);
 
         for (Node propertyTypeNode : instanceNode.getChildren()) {
             PropertyArtefact propertyArtefact = (PropertyArtefact) propertyTypeNode.getArtifact().getData();

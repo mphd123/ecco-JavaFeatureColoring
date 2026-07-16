@@ -43,11 +43,12 @@ public class InstanceTypeArtefact implements ArtifactData {
                 throw new InstanceTypeException(String.format("the names of the artefact and the already existing Type are not equal artefact[%s] . existing[%s]", name, instanceType.getName()));
 
         } else {
+            throw new RuntimeException("the artefact does not exist need to create it currently disabled ");
             // need to support handle supertypes
             // todo and handle the id reassignment at the end
-            instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createWorkspaceElementType( name);
-            writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
-            writerTypeManager.instanceTypeMap.put(instanceType.getId(), instanceType);
+            //instanceType = DesignSpace.getLanguageWorkspace(languageWorkspaceName).createWorkspaceElementType( name);
+            //writerTypeManager.newToOriginalId.put(instanceType.getId(), id);
+            //writerTypeManager.instanceTypeMap.put(instanceType.getId(), instanceType);
         }
         for (Node instanceNode : typeNode.getChildren()) {
             InstanceArtefact instanceArtefact = (InstanceArtefact) instanceNode.getArtifact().getData();

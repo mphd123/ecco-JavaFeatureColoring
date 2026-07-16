@@ -2,10 +2,7 @@ package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 
 import at.jku.isse.designspace.commons.Cardinality;
-import at.jku.isse.designspace.core.model.DesignSpace;
-import at.jku.isse.designspace.core.model.WorkspaceElement;
-import at.jku.isse.designspace.core.model.WorkspaceProperty;
-import at.jku.isse.designspace.core.model.WorkspacePropertyType;
+import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -18,6 +15,9 @@ import at.jku.isse.ecco.adapter.designspace.util.refFixUp.SingleFixUp;
 import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SinglePropertyArtefact extends PropertyArtefact {
 
@@ -39,17 +39,26 @@ public class SinglePropertyArtefact extends PropertyArtefact {
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         Node valueNode = propertyNode.getChildren().get(0);
         
-        // debugging breakpoint
-        if (instance.getName().contains("abc")) {
-            int i = 0;
-        }
+
+
 
         WorkspacePropertyType propertyType =  instance.getInstanceOf().getPropertyType(name);
+        // debugging breakpoint
+        if (instance.getName().contains("else")) {
+            int i = 0;
+            System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa got else should not happen");
+        }
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);
     }
 
     private void setSinglePropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, ValueArtefact<?> valueArtefact, WriterTypeManager writerTypeManager) {
         if (valueArtefact instanceof  ReferenceValueArtefact referenceValueArtefact) {
+
+            // contained elements get there prop set by the container  so skip them
+            if (propertyType.isContained()) {
+                //System.out.println( "üüüüüüüüüüüü propType: "+ propertyType + "for instance " +instance +   " is contained");
+                return;
+            }
             writerTypeManager.refFixUps.add(new SingleFixUp(instance,propertyType,referenceValueArtefact.getValue()));
         }else if (valueArtefact instanceof SimpleValueArtifact<?> valueArtifact) {
             instance.set(propertyType,valueArtifact.getValue());

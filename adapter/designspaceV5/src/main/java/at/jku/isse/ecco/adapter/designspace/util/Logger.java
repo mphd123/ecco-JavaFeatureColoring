@@ -14,7 +14,7 @@ public class Logger {
     }
 
     public static boolean isToBeLoggedType(WorkspaceElement instance) {
-        return instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if");
+        return true;//instance.getInstanceOf().getName().toLowerCase().contains("for") ||instance.getInstanceOf().getName().toLowerCase().contains("if");
     }
 
 

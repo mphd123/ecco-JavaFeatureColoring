@@ -39,9 +39,8 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
             }
         }
 
-            workspace.acceptAllChanges();
-            workspace.conclude();
-            System.out.println("Debug ---------- BeforeFixupRecord ----------- \n" + writerTypeManager.FixupReport());
+        workspace.acceptAllChanges();
+        workspace.conclude();
         Logger.enabled = true;
         writerTypeManager.resolveRefProperties(workspace);
         System.out.println("Debug ---------- FixupRecord ----------- \n" + writerTypeManager.FixupReport());

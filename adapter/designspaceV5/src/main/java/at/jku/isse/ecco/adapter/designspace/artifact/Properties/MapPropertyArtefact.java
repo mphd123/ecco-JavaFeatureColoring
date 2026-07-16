@@ -57,6 +57,10 @@ public class MapPropertyArtefact extends PropertyArtefact{
 
     private void setMapPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Map<Key,ValueArtefact<?>> artefactMap, WriterTypeManager writerTypeManager) {
         if(artefactMap.isEmpty()) return;
+        if (propertyType.isContained()) {
+            //System.out.println( "üüüüüüüüüüüü propType: "+ propertyType + "for instance " +instance +   " is contained");
+            return;
+        }
         ValueArtefact<?> example = artefactMap.values().stream().findAny().orElse(null);
         if (example instanceof  ReferenceValueArtefact referenceValueArtefact) {
             Map<Key, Long> map = new HashMap<>();

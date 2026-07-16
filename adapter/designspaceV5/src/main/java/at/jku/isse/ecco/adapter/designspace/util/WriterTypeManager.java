@@ -106,7 +106,7 @@ public class WriterTypeManager {
 
     }
 
-    private String detailRepresentation(WorkspaceElement element) {
+    public static String detailRepresentation(WorkspaceElement element) {
         StringBuilder sb = new StringBuilder();
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
             if (propType.getCardinality().equals(Cardinality.SINGLE))
