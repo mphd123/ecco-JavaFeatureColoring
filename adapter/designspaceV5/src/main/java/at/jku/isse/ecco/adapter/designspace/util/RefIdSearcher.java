@@ -37,7 +37,16 @@ public class RefIdSearcher {
             WorkspaceElement element = workspace.getWorkspaceElement(id);
             Folder elementFolder = element.getFolder();
             if (elementFolder == folder) {
-                if(directFound.get() != -1) throw new RuntimeException("in Folder" + folder + "there are at least two elemnts who with id mapper share the original id ");;
+                if(directFound.get() != -1) {
+                    try {
+                        System.err.println("in Folder" + folder + "there are at least two elemnts who with id mapper share the original id "
+                                + workspace.getWorkspaceElement(directFound.get()) +"new found is" + workspace.getWorkspaceElement(id) );
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    return;
+                };
                 directFound.set(id);
                 return;
             }
@@ -46,7 +55,16 @@ public class RefIdSearcher {
             while (searchFolder != null) {
                 if (searchFolder.equals(elementFolder)) {
                     Long nullCHeck = parentSteps.put(steps, id);
-                    if(nullCHeck != null) throw new RuntimeException("in Folder" + searchFolder + "there are at least two elemnts who with id mapper share the original id ");
+                    if(nullCHeck != null) {
+                        try {
+                            System.err.println("in Folder" + searchFolder + "there are at least two elemnts who with id mapper share the original id previous was "
+                            + workspace.getWorkspaceElement(nullCHeck) +"new found is" + workspace.getWorkspaceElement(id)  );
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        return;
+                    }
+
                 }
                 searchFolder = searchFolder.getParentFolder();
                 steps++;

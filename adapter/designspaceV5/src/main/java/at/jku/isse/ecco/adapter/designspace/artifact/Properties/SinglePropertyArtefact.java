@@ -37,10 +37,11 @@ public class SinglePropertyArtefact extends PropertyArtefact {
     }
 
     public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+        if (propertyNode.getChildren().size() != 1) {
+            System.err.println("SinglePropartefact  did not have 1 child it had =" + propertyNode.getChildren().size() );
+            return;
+        }
         Node valueNode = propertyNode.getChildren().get(0);
-        
-
-
 
         WorkspacePropertyType propertyType =  instance.getInstanceOf().getPropertyType(name);
         setSinglePropValue(instance,propertyType,getValueArtefact(valueNode),writerTypeManager);

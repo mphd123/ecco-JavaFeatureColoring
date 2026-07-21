@@ -14,19 +14,22 @@ import at.jku.isse.ecco.tree.Node;
 import com.google.inject.Inject;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterString;
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpaterString;
 
 public class DesignSpaceService extends EccoService {
 
     @Inject
     private Set<ArtifactReader<DesignSpaceInfo, Set<Node.Op>>> readers;
-
-    private ArtifactReader<DesignSpaceInfo, Set<Node.Op>> reader;
+    private Map<DesignSpaceInfo.writerType,ArtifactReader<DesignSpaceInfo, Set<Node.Op>> > readerMap = new HashMap<>();
 
     @Inject
     private Set<ArtifactWriter<Set<Node>, DesignSpaceInfo>> writers;
 
-    private ArtifactWriter<Set<Node>, DesignSpaceInfo> writer;
+    private Map<DesignSpaceInfo.writerType,ArtifactWriter<Set<Node>, DesignSpaceInfo> > writerMap = new HashMap<>();
 
     private IdMapper idMapper;
 
@@ -44,7 +47,9 @@ public class DesignSpaceService extends EccoService {
     public synchronized Set<Node.Op> readFiles() {
         // change to commit with designspaceInfo
         assert(designSpaceInfo != null);
-        return this.reader.read(designSpaceInfo,null);
+        ArtifactReader<DesignSpaceInfo, Set<Node.Op>> reader = readerMap.get(designSpaceInfo.writerType());
+        assert(reader != null);
+        return reader.read(designSpaceInfo,null);
     }
 
     public synchronized void open(){
@@ -53,8 +58,21 @@ public class DesignSpaceService extends EccoService {
     }
 
     private void initAdapter(){
-        reader = readers.stream().findFirst().get();
-        writer = writers.stream().findFirst().get();
+        readers.forEach(reader -> {
+            if (reader.toString().equals(javaAdpaterString)){
+                readerMap.put(DesignSpaceInfo.writerType.JAVA,reader);
+            } else if (reader.toString().equals(generalAdpaterString)){
+                readerMap.put(DesignSpaceInfo.writerType.GENERAL,reader);
+            }
+        });
+
+        writers.forEach(writer -> {
+            if (writer.toString().equals(javaAdpaterString)){
+                writerMap.put(DesignSpaceInfo.writerType.JAVA,writer);
+            } else if (writer.toString().equals(generalAdpaterString)){
+                writerMap.put(DesignSpaceInfo.writerType.GENERAL,writer);
+            }
+        });
 
     }
 
@@ -63,7 +81,10 @@ public class DesignSpaceService extends EccoService {
         Configuration configuration = parseConfigurationString(configurationString);
         Checkout checkout = compose(configuration);
         Set<Node> nodes = compareArtifacts(checkout);
-        this.writer.write(info, nodes);
+
+        ArtifactWriter<Set<Node>, DesignSpaceInfo> writer = writerMap.get(designSpaceInfo.writerType());
+        assert(writer != null);
+        writer.write(info, nodes);
         return checkout;
 
     }

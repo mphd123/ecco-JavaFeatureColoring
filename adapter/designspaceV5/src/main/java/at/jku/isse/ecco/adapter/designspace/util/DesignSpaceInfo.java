@@ -11,7 +11,7 @@ import at.jku.isse.ecco.adapter.designspace.exception.WorkspaceException;
 
 import java.util.Collection;
 
-public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMapper,boolean printDebug) {
+public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMapper,boolean printDebug, writerType writerType) {
     public void checkIfInfoValid(DesignSpaceInfo info) {
         if (info.idMapper() == null) throw new IDMapperException("is null");
         if (info.idMapper().getCurrentRepId() == null || info.idMapper().getCurrentRepId().isBlank()) {
@@ -21,5 +21,11 @@ public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMap
         if (info.folder() == null) throw new FolderException("is null");
         Collection<WorkspaceElement> instances = (Collection<WorkspaceElement>) info.folder().getWorkspaceElementContents(workspace);
         if(!instances.isEmpty() || !info.folder().getSubFolders().isEmpty()) throw new FolderException("the chosen Folder is not empty");
+    }
+
+    public static enum writerType {
+        GENERAL,
+        JAVA
+
     }
 }

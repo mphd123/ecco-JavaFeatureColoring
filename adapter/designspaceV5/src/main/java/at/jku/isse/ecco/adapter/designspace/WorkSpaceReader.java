@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterString;
+
 
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
@@ -65,11 +67,17 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
         listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getQualifiedName()),this));
 
+        if (!errors.isEmpty()){
+            System.err.println("While reading errors the following erros happend");
+            errors.forEach(e -> e.printStackTrace());
+        }
 
         return Set.of(pluginNode);
     }
 
     private Node.Op handleFolder(Folder folder,Node.Op parentFolderNode,boolean isCommitFolder){
+
+
         Node.Op folderNode = (isCommitFolder) ?  entityFactory.createOrderedNode(new CommitFolderArtefact()) : entityFactory.createOrderedNode(new FolderArtefact(folder.getName(),idMapper.getOriginalId(folder.getId()) ));
         try {
 
@@ -140,49 +148,66 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     }
 
     private void handleInstance(WorkspaceElement instance) throws ExecutionControl.NotImplementedException {
-        WorkspaceElementType instanceType = instance.getInstanceOf();
-        if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
-        Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
-        Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
+        try {
+            WorkspaceElementType instanceType = instance.getInstanceOf();
+            if (!instanceTypeNodes.containsKey(instanceType.getId())) throw new RuntimeException("could not find InstancetypeNode");
+            Node.Op instanceTypeNode = instanceTypeNodes.get(instanceType.getId());
+            Node.Op instanceNode = entityFactory.createNode(new InstanceArtefact(instance.getName(), idMapper.getOriginalId(instance.getId()),instanceType.getId()));
 
 
-        try{
-            instanceTypeNode.addChild(instanceNode );
-        }catch(EccoException e){
-            if (e.getMessage().equals("An equivalent child is already contained. If multiple equivalent children are allowed use an ordered node.")){
-                // in this case there is a duplicate name catch this exception because i want to collect all duplicate names for convenience
-                exception = e;
-            }else
-                throw e;
+            try{
+                instanceTypeNode.addChild(instanceNode );
+            }catch(EccoException e){
+                if (e.getMessage().equals("An equivalent child is already contained. If multiple equivalent children are allowed use an ordered node.")){
+                    // in this case there is a duplicate name catch this exception because i want to collect all duplicate names for convenience
+                    exception = e;
+                }else
+                    throw e;
+            }
+            Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
+
+            if(Logger.isToBeLoggedType(instance)){
+                Logger.enabledAndThenDisabled = true;
+                Logger.log(" PropTypes for chosen instancetype",instance );
+            }
+
+            handleProperties(instance, instanceType,instanceNode,propertyTypes);
+
+        }catch (Exception e){
+            errors.add(e);
+            e.printStackTrace();
+
+        }finally {
+            if(Logger.isToBeLoggedType(instance)) Logger.enabledAndThenDisabled = false;
         }
-        Collection<WorkspacePropertyType> propertyTypes = instanceType.getAllPropertyTypes();
 
-        if(Logger.isToBeLoggedType(instance)){
-            Logger.enabledAndThenDisabled = true;
-            Logger.log(" PropTypes for chosen instancetype",instance );
-        }
-
-        handleProperties(instance, instanceType,instanceNode,propertyTypes);
-        if(Logger.isToBeLoggedType(instance)) Logger.enabledAndThenDisabled = false;
     }
 
+    private List<Exception> errors = new ArrayList<>();
     private void handleProperties(WorkspaceElement instance,WorkspaceElementType instanceType, Node.Op instanceNode, Collection<WorkspacePropertyType> propertyTypes) throws ExecutionControl.NotImplementedException {
+
 
         for (WorkspacePropertyType pt : propertyTypes) {
             //if (pt instanceof  InitPropertyType) continue;/ currently not sure how to handle
+            try {
+                Logger.log("Property= " +pt.getName());
 
-            Logger.log("Property= " +pt.getName());
-
-            WorkspaceProperty<Object> property = instance.getOrCreateProperty(pt);
-            // skip empty proeprties
-            if (property.getRaw() == null) continue;
-            if (property.getName() != null &&
-                    !property.getName().contains("@") &&
-                    !property.getName().equals("modifiedBy") &&
-                    !property.getName().equals("name")) {
-                PropertyArtefactInterface artefact =  createPropArtefact(property.getId(),instanceType, property.getName(), pt.getCardinality());
-                artefact.createNode(instanceNode,entityFactory,property, idMapper);
+                WorkspaceProperty<Object> property = instance.getOrCreateProperty(pt);
+                // skip empty properties
+                if (property.getRaw() == null) continue;
+                if (property.getName() != null &&
+                        !property.getName().contains("@") &&
+                        !property.getName().equals("modifiedBy") &&
+                        !property.getName().equals("name")) {
+                    PropertyArtefactInterface artefact =  createPropArtefact(property.getId(),instanceType, property.getName(), pt.getCardinality());
+                    artefact.createNode(instanceNode,entityFactory,property, idMapper);
+                }
+            }catch (Exception e){
+                errors.add(e);
+                e.printStackTrace();
             }
+
+
         }
     }
 
@@ -210,5 +235,10 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
     @Override
     public void removeListener(ReadListener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public String toString() {
+        return generalAdpaterString;
     }
 }

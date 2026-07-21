@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     implementation("at.jku.isse.designspace:core:5.0")
+    implementation("at.jku.isse.designspace:infrastructure:5.0")
 
     implementation project(':ecco-service')
 
