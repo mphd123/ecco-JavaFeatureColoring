@@ -9,6 +9,7 @@ import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.DesignSpacePlugin;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaElement;
+import at.jku.isse.ecco.adapter.designspace.Java.artefacts.SingleJavaElement;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.TypeArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
@@ -64,18 +65,24 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
     @Override
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
-        instanceTypeNodes = new HashMap<>();
-        workspace = base.workspace();
-        Folder commitFolder = base.folder();
-        Logger.debug = base.printDebug();
-        idMapper = base.idMapper();
+        Node.Op pluginNode;
+        try {
+            instanceTypeNodes = new HashMap<>();
+            workspace = base.workspace();
+            Folder commitFolder = base.folder();
+            Logger.debug = base.printDebug();
+            idMapper = base.idMapper();
 
-        Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
-        handleProject(commitFolder, pluginNode);
-        if (!errors.isEmpty()){
-            System.err.println("While reading errors the following erros happend");
-            errors.forEach(e -> e.printStackTrace());
+            pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
+            handleProject(commitFolder, pluginNode);
+            if (!errors.isEmpty()) {
+                System.err.println("While reading errors the following erros happend");
+                errors.forEach(e -> e.printStackTrace());
+            }
+        } finally {
+            SingleJavaElement.allSingles.clear();
         }
+
 
         return Set.of(pluginNode);
     }
@@ -113,7 +120,13 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     private Node.Op handleJavaElement(Node.Op parentNode, WorkspaceElement element){
         if(processedElements.contains(element)){ return null; } // already handled prevents circles
         System.out.println("handeling" + element);
-        Node.Op ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
+        Node.Op ElementNode;
+        if (SingleJavaElement.allSingles.containsKey(element.getInstanceOf())) {
+            ElementNode = entityFactory.createOrderedNode(new SingleJavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
+        }else{
+            ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
+        }
+
         if (element == null) {
             System.err.println(" during the Read process for java elements one child element is null");
             return null;
