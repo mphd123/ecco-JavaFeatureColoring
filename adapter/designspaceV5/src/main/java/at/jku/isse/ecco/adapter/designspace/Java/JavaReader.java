@@ -19,7 +19,8 @@ import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
 import com.google.inject.Inject;
-import at.jku.isse.designspace.*;
+
+import javax.lang.model.util.Elements;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
 
+    private final Set<WorkspaceElement> processedElements = new HashSet<>();
     private Java8 java;
     IdMapper idMapper;
     // should be changed to local ones for the subfolders
@@ -69,9 +71,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         idMapper = base.idMapper();
 
         Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
-
-        listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getQualifiedName()),this));
-
+        handleProject(commitFolder, pluginNode);
         if (!errors.isEmpty()){
             System.err.println("While reading errors the following erros happend");
             errors.forEach(e -> e.printStackTrace());
@@ -96,7 +96,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     }
 
 
-    private void HandleProject(Folder folder,Node.Op pluginNode){
+    private void handleProject(Folder folder,Node.Op pluginNode){
         if(Java8.JAVA_PROJECT == null) {
             throw new EccoException("java 8 not initialized");
         }
@@ -105,26 +105,31 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         Set<WorkspaceElement> projects = folder.getWorkspaceElementContents(workspace).stream().filter(workspaceElement -> workspaceElement.isInstanceOf(Java8.JAVA_PROJECT)).collect(Collectors.toSet());
         for (WorkspaceElement project : projects){
             Node.Op projectNode = handleJavaElement(pluginNode,project);
+            pluginNode.addChild(projectNode);
         }
     }
 
 
     private Node.Op handleJavaElement(Node.Op parentNode, WorkspaceElement element){
-        Node.Op ElementNode = entityFactory.createNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
+        if(processedElements.contains(element)){ return null; } // already handled prevents circles
+        System.out.println("handeling" + element);
+        Node.Op ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
         if (element == null) {
             System.err.println(" during the Read process for java elements one child element is null");
             return null;
 
         }
         if (!element.isInstanceOf(Java8.JAVA_ELEMENT)){
-            System.err.println(" during the Read process for java elements one child element does not belong to java8" + element +" instance of " + element.getInstanceOf());
+            //System.err.println(" during the Read process for java elements one child element does not belong to java8" + element +" instance of " + element.getInstanceOf());
             return null;
         }
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
-            Node.Op propTypeNode = entityFactory.createNode(new TypeArtefact(propType.getName(),propType.getCardinality()));
+            if (propType.isContained()) continue; // handled by other
+            Node.Op propTypeNode = entityFactory.createOrderedNode(new TypeArtefact(propType.getQualifiedName(),propType.getCardinality()));
+
             Node childElement;
             if (propType.getCardinality().equals(Cardinality.SINGLE)){
-                addValueNode(propTypeNode,element.getOrCreateProperty(propType));
+                addValueNode(propTypeNode,element.getOrCreateProperty(propType).get());
             }else if (propType.getCardinality().equals(Cardinality.MAP)) {
 
                 element.getMap(propType).forEach((key, value) -> {
@@ -134,11 +139,15 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
                 });
 
             } else {
-                element.getCollection(propType).forEach(o -> {
-                    addValueNode(propTypeNode,element.getOrCreateProperty(propType));
-                });
+                Collection<Object> values = element.getCollection(propType);
+                for (Object value : values) {
+                    addValueNode(propTypeNode,value);
+                }
+
+
             }
-            parentNode.addChild(propTypeNode);
+            ElementNode.addChild(propTypeNode);
+            processedElements.add(element);
         }
         return ElementNode;
     }
@@ -146,6 +155,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
 
     void addValueNode(Node.Op propertyNode, Object value){
+        if (value == null)return;
         if (value instanceof WorkspaceElement instanceValue) {
             Long originalId = idMapper.getOriginalId(instanceValue.getId());
             Node.Op element = handleJavaElement(propertyNode, instanceValue);

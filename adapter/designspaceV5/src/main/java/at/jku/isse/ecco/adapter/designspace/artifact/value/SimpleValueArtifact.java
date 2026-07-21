@@ -1,5 +1,6 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.value;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 public class SimpleValueArtifact<T> implements ValueArtefact<T> {
@@ -11,6 +12,9 @@ public class SimpleValueArtifact<T> implements ValueArtefact<T> {
 
     public SimpleValueArtifact(T value) {
         this.value = value;
+        if (! (value instanceof Serializable)) {
+            throw new RuntimeException("SimpleValueArtefact value must be serializable receivedc lass" +  value.getClass() +" value: " + value);
+        }
     }
 
 

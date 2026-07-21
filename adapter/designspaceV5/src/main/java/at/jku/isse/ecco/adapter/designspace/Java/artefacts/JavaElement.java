@@ -36,13 +36,14 @@ public class JavaElement implements JavaArtefact {
 
     public WorkspaceElement build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
+        System.out.println("creating java element " + name + " of type " + typeName);
         if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
         WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
         //writerTypeManager.newToOriginalId.put(instance.getId(), id);
         Logger.log(" instance created old id was " + "id" + "new id is " + instance.getId(), instance);
 
         for (Node propertyTypeNode : instanceNode.getChildren()) {
-            if (propertyTypeNode.getArtifact() instanceof TypeArtefact typeArtefact){
+            if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact){
                 typeArtefact.build(workspace,folder,propertyTypeNode,instance,writerTypeManager);
             }
         }

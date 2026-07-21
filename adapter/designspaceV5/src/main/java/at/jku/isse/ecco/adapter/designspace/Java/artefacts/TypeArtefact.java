@@ -40,8 +40,12 @@ public class TypeArtefact implements JavaArtefact {
 
     public void build(Workspace workspace, Folder folder, Node propertyTypeNode, WorkspaceElement owningElement,WriterTypeManager writerTypeManager)  {
 
+        WorkspacePropertyType property = DesignSpace.getPropertyType(qualifiedName);
+        System.out.println("setting type" + property);
+
         if (cardinality.equals(Cardinality.SINGLE)){
-            if (propertyTypeNode.getChildren().size() == 1){
+            if (owningElement instanceof SimpleValueArtifact){}
+            if (propertyTypeNode.getChildren().size() != 1){
                 System.err.println("TypeArtefact: " + qualifiedName + "Single doent have a single ChildNode it has " + propertyTypeNode.getChildren().size() );
                 if (propertyTypeNode.getChildren().isEmpty()) return;
             }
@@ -81,7 +85,8 @@ public class TypeArtefact implements JavaArtefact {
 
 
 
-    private void setCollectionPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Collection< ? extends Node> valueNodeCollection, Workspace workspace,Folder folder, WriterTypeManager writerTypeManager) {
+    private void setCollectionPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, List< ? extends Node> valueNodeCollection, Workspace workspace,Folder folder, WriterTypeManager writerTypeManager) {
+        System.out.println("setting collection property " + propertyType);
         if( valueNodeCollection.isEmpty()) return;
         if (propertyType.isContained()) {
             return;
@@ -98,6 +103,7 @@ public class TypeArtefact implements JavaArtefact {
             else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
             else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
 
+
             valueNodeCollection.forEach(( value) ->  {
                 if (value.getArtifact().getData() instanceof JavaElement javaElement){
                     try {
@@ -107,6 +113,9 @@ public class TypeArtefact implements JavaArtefact {
                     }
                 }
             });
+            System.out.println("CollectionProps " + qualifiedName +" order is for retrieved elements " +Arrays.toString(collection.toArray()) );
+            instance.setAll(propertyType, collection);
+
 
         }else if (example.getArtifact().getData() instanceof SimpleValueArtifact<?>) {
             Collection<Object> collection;
@@ -115,10 +124,11 @@ public class TypeArtefact implements JavaArtefact {
             else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
             valueNodeCollection.forEach(( value) ->  {
                 if (value.getArtifact().getData() instanceof SimpleValueArtifact<?> simpleValueArtifact){
-                    collection.add(simpleValueArtifact);
+                    collection.add(simpleValueArtifact.getValue());
                 }
             });
             instance.setAll(propertyType, collection);
+            System.out.println("CollectionProps " + qualifiedName +" order is for retrieved elements " +Arrays.toString(collection.toArray()) );
         } else throw  new RuntimeException("unexpected value");
     }
 }
