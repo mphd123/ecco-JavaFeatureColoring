@@ -6,6 +6,7 @@ import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.DesignSpacePlugin;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaElement;
+import at.jku.isse.ecco.adapter.designspace.Java.artefacts.SingleJavaElement;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
@@ -30,6 +31,12 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
 
     @Override
     public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
+
+        SingleJavaElement.reset();
+        TreeLogger.reset();
+
+
+        System.out.println("java writer checkout");
         Workspace workspace = info.workspace();
         Folder checkoutFolder = info.folder(); // workspace.its();
         Logger.debug = info.printDebug();
@@ -53,7 +60,12 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
             writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );
         } catch (Exception e) {
             e.printStackTrace();
+
             throw new RuntimeException(e);
+        }finally {
+            SingleJavaElement.reset();
+            TreeLogger.reset();
+
         }
 
 

@@ -2,6 +2,7 @@ package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.domains.Java8;
+import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
 import at.jku.isse.ecco.adapter.designspace.util.Logger;
@@ -23,6 +24,15 @@ public class SingleJavaElement extends JavaElement {
     public static final Map<WorkspaceElementType, WorkspaceElement> allSingles = new HashMap<>();
 
     static {
+        initSingleTypes();
+    }
+
+    public static void reset() {
+        allSingles.clear();
+        initSingleTypes();
+    }
+
+    private static void initSingleTypes() {
         allSingles.put(Java8.JAVA_TYPE, null);
     }
 
@@ -31,37 +41,37 @@ public class SingleJavaElement extends JavaElement {
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
-        WorkspaceElement instance = getSingleOrCreate(workspace, folder, instanceType);
+        WorkspaceElement instance = getSingleOrCreate(workspace, folder, instanceType,instanceNode,writerTypeManager);
 
-        for (Node propertyTypeNode : instanceNode.getChildren()) {
-            if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
-                typeArtefact.build(workspace, folder, propertyTypeNode, instance, writerTypeManager);
-            }
-        }
+
         return instance;
     }
 
-    private WorkspaceElement getSingleOrCreate(Workspace workspace, Folder folder, WorkspaceElementType instanceType)
+    private WorkspaceElement getSingleOrCreate(Workspace workspace, Folder folder, WorkspaceElementType instanceType, Node instanceNode, WriterTypeManager writerTypeManager)
             throws TypeMangerException {
 
-        if (instanceType == null) {
-            throw new TypeMangerException("The type for the instance could not be found");
-        }
+        if (instanceType == null) throw new TypeMangerException("Type not found");
 
         WorkspaceElement cachedInstance = allSingles.get(instanceType);
         if (cachedInstance != null) {
+            TreeLogger.log("[Reused Singleton] " + typeName);
             return cachedInstance;
         }
 
+        // Enter scope for newly created singleton
+        try (var scope = TreeLogger.enter("SingleJavaElement [" + typeName + "] name: '" + name + "'")) {
+            WorkspaceElement newInstance = workspace.createWorkspaceElement(instanceType, name, folder);
 
-        System.out.println("Creating java element " + name + " of type " + typeName);
-        WorkspaceElement newInstance = workspace.createWorkspaceElement(instanceType, name, folder);
+            if (allSingles.containsKey(instanceType)) {
+                allSingles.put(instanceType, newInstance);
+            }
 
-        if (allSingles.containsKey(instanceType)) {
-            allSingles.put(instanceType, newInstance);
+            for (Node propertyTypeNode : instanceNode.getChildren()) {
+                if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
+                    typeArtefact.build(workspace, folder, propertyTypeNode, newInstance, writerTypeManager);
+                }
+            }
+            return newInstance;
         }
-
-        Logger.log("Instance created: new id is " + newInstance.getId(), newInstance);
-        return newInstance;
     }
 }

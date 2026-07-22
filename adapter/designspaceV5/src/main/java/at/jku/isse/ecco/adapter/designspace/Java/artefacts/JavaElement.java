@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -22,8 +23,8 @@ public class JavaElement implements JavaArtefact {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        JavaElement that = (JavaElement) o;
+        if (this == o) return true;
+        if (!(o instanceof JavaElement that)) return false;
         return Objects.equals(name, that.name) && Objects.equals(typeName, that.typeName);
     }
 
@@ -34,19 +35,21 @@ public class JavaElement implements JavaArtefact {
 
 
 
-    public WorkspaceElement build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
-        WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
-        System.out.println("creating java element " + name + " of type " + typeName);
-        if (instanceType == null) throw new TypeMangerException("the type for the Instance could not be found");
-        WorkspaceElement instance = workspace.createWorkspaceElement( instanceType, name, folder);
-        //writerTypeManager.newToOriginalId.put(instance.getId(), id);
-        Logger.log(" instance created old id was " + "id" + "new id is " + instance.getId(), instance);
+    public WorkspaceElement build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager)
+            throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
-        for (Node propertyTypeNode : instanceNode.getChildren()) {
-            if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact){
-                typeArtefact.build(workspace,folder,propertyTypeNode,instance,writerTypeManager);
+        WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
+        if (instanceType == null) throw new TypeMangerException("Type not found: " + typeName);
+
+        try (var scope = TreeLogger.enter("JavaElement [" + typeName + "] name: '" + name + "'")) {
+            WorkspaceElement instance = workspace.createWorkspaceElement(instanceType, name, folder);
+
+            for (Node propertyTypeNode : instanceNode.getChildren()) {
+                if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
+                    typeArtefact.build(workspace, folder, propertyTypeNode, instance, writerTypeManager);
+                }
             }
+            return instance;
         }
-        return instance;
     }
 }

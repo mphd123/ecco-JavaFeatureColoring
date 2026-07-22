@@ -22,7 +22,12 @@ import at.jku.isse.ecco.tree.Node;
 import com.google.inject.Inject;
 
 import javax.lang.model.util.Elements;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,8 +70,15 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
     @Override
     public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
+
+        processedElements.clear();
+        SingleJavaElement.reset();
+
+
         Node.Op pluginNode;
-        try {
+        try{
+            System.out.println("javareader commit");
+
             instanceTypeNodes = new HashMap<>();
             workspace = base.workspace();
             Folder commitFolder = base.folder();
@@ -79,8 +91,14 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
                 System.err.println("While reading errors the following erros happend");
                 errors.forEach(e -> e.printStackTrace());
             }
-        } finally {
-            SingleJavaElement.allSingles.clear();
+
+            System.out.println("\n=== GENERATED TREE ===");
+            printNodeTreeToConsole(pluginNode,10);
+            printNodeTreeToFile(pluginNode,"CommitData.txt");
+            System.out.println("==========================\n");
+        }finally {
+            processedElements.clear();
+            SingleJavaElement.reset();
         }
 
 
@@ -118,7 +136,19 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
 
     private Node.Op handleJavaElement(Node.Op parentNode, WorkspaceElement element){
-        if(processedElements.contains(element)){ return null; } // already handled prevents circles
+        if (element == null) {
+            System.err.println(" during the Read process for java elements one child element is null");
+            return null;
+
+        }
+        boolean isSingle = SingleJavaElement.allSingles.containsKey(element.getInstanceOf());
+
+
+        if (processedElements.contains(element) && !isSingle) {
+            return null;
+        }
+
+
         System.out.println("handeling" + element);
         Node.Op ElementNode;
         if (SingleJavaElement.allSingles.containsKey(element.getInstanceOf())) {
@@ -127,17 +157,24 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
             ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
         }
 
-        if (element == null) {
-            System.err.println(" during the Read process for java elements one child element is null");
-            return null;
 
-        }
         if (!element.isInstanceOf(Java8.JAVA_ELEMENT)){
             //System.err.println(" during the Read process for java elements one child element does not belong to java8" + element +" instance of " + element.getInstanceOf());
             return null;
         }
+
+        boolean firstTime = processedElements.add(element);
+
+
+        if (isSingle && !firstTime) {
+            return ElementNode;
+        }
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
-            if (propType.isContained()) continue; // handled by other
+
+            if (!Filter.shouldProcessProperty(propType)) { // shouldProcessProperty(propType)
+                continue;
+            }
+
             Node.Op propTypeNode = entityFactory.createOrderedNode(new TypeArtefact(propType.getQualifiedName(),propType.getCardinality()));
 
             Node childElement;
@@ -160,8 +197,9 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
             }
             ElementNode.addChild(propTypeNode);
-            processedElements.add(element);
+
         }
+
         return ElementNode;
     }
 
@@ -184,6 +222,96 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
         }
 
+    }
+
+
+
+    public void printNodeTreeToFile(Node node, String filePath) {
+        Path path = Paths.get(filePath);
+
+        if (node == null) {
+            deleteLogFile(path);
+            return;
+        }
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+            writer.println("┌── " + formatNodeLabel(node));
+            List<? extends Node> children = node.getChildren();
+
+            for (int i = 0; i < children.size(); i++) {
+                printNodeTreeRecursive(children.get(i), "", i == children.size() - 1, writer, 1, Integer.MAX_VALUE);
+            }
+
+
+            if (writer.checkError()) {
+                throw new IOException("Stream error encountered while writing tree output.");
+            }
+
+            System.out.println("AST Tree saved successfully to: " + filePath);
+
+        } catch (Exception e) {
+            System.err.println("Failed to generate AST tree (" + e.getMessage() + "). Cleaning up old/incomplete log file...");
+            deleteLogFile(path);
+        }
+    }
+
+    private void deleteLogFile(Path path) {
+        try {
+            boolean deleted = Files.deleteIfExists(path);
+            if (deleted) {
+                System.out.println("Deleted invalid/previous log file: " + path.getFileName());
+            }
+        } catch (IOException e) {
+            System.err.println("Could not delete log file: " + e.getMessage());
+        }
+    }
+
+    public void printNodeTreeToConsole(Node node, int maxDepth) {
+        if (node == null) return;
+        PrintWriter writer = new PrintWriter(System.out);
+        writer.println("┌── " + formatNodeLabel(node));
+        List<? extends Node> children = node.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            printNodeTreeRecursive(children.get(i), "", i == children.size() - 1, writer, 1, maxDepth);
+        }
+        writer.flush(); // Ensure console output is flushed
+    }
+
+    private void printNodeTreeRecursive(Node node, String indent, boolean isLast, PrintWriter writer, int currentDepth, int maxDepth) {
+        String marker = isLast ? "└── " : "├── ";
+
+        writer.println(indent + marker + formatNodeLabel(node));
+
+        String childIndent = indent + (isLast ? "    " : "│   ");
+        List<? extends Node> children = node.getChildren();
+
+        if (currentDepth >= maxDepth && !children.isEmpty()) {
+            writer.println(childIndent + "└── ... [" + children.size() + " children hidden]");
+            return;
+        }
+
+        for (int i = 0; i < children.size(); i++) {
+            printNodeTreeRecursive(children.get(i), childIndent, i == children.size() - 1, writer, currentDepth + 1, maxDepth);
+        }
+    }
+
+    private String formatNodeLabel(Node node) {
+        Object artifact = node.getArtifact().getData();
+
+        if (artifact instanceof JavaElement javaElement) {
+            return "JavaElement [" + javaElement.typeName + "] name: '" + javaElement.name + "'";
+        } else if (artifact instanceof SingleJavaElement singleElement) {
+            return "SingleJavaElement [" + singleElement.typeName + "] name: '" + singleElement.name + "'";
+        } else if (artifact instanceof TypeArtefact typeArtefact) {
+            return "Property: " + typeArtefact.qualifiedName + " (" + typeArtefact.cardinality + ")";
+        } else if (artifact instanceof StringArtefact stringArtefact) {
+            return "StringArtefact: '" + stringArtefact.getValue() + "'";
+        } else if (artifact instanceof SimpleValueArtifact<?> simpleValue) {
+            return "Value: " + simpleValue.getValue();
+        } else if (artifact != null) {
+            return artifact.getClass().getSimpleName() + ": " + artifact.toString();
+        }
+
+        return "NullArtifact";
     }
 
 
