@@ -69,21 +69,22 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
 
     @Override
-    public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
+    public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
 
         processedElements.clear();
         SingleJavaElement.reset();
 
+        info.checkIfInfoValid();
 
         Node.Op pluginNode;
         try{
-            System.out.println("javareader commit");
+            if (info.debugOptions().javaConsole()) System.out.println("javareader commit");
 
             instanceTypeNodes = new HashMap<>();
-            workspace = base.workspace();
-            Folder commitFolder = base.folder();
-            Logger.debug = base.printDebug();
-            idMapper = base.idMapper();
+            workspace = info.workspace();
+            Folder commitFolder = info.folder();
+            TreeLogger.debugOptions = info.debugOptions();
+            idMapper = info.idMapper();
 
             pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
             handleProject(commitFolder, pluginNode);
@@ -91,11 +92,18 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
                 System.err.println("While reading errors the following erros happend");
                 errors.forEach(e -> e.printStackTrace());
             }
+            if (info.debugOptions().javaConsole()) {
+                System.out.println("\n=== GENERATED TREE ===");
+                printNodeTreeToConsole(pluginNode,10);
+                printNodeTreeToFile(pluginNode,"CommitData.txt");
+                System.out.println("==========================\n");
+            }
 
-            System.out.println("\n=== GENERATED TREE ===");
-            printNodeTreeToConsole(pluginNode,10);
-            printNodeTreeToFile(pluginNode,"CommitData.txt");
-            System.out.println("==========================\n");
+            if (info.debugOptions().javaLogFile()) {
+                printNodeTreeToFile(pluginNode,"CommitData.txt");
+            }
+
+
         }finally {
             processedElements.clear();
             SingleJavaElement.reset();

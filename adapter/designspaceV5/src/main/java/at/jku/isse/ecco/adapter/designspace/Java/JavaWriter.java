@@ -22,6 +22,9 @@ import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpater
 
 public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
     private final List<WriteListener> listeners = new ArrayList<>();
+    public Workspace workspace;
+    public Folder checkoutFolder;
+    public WriterTypeManager writerTypeManager;
 
 
     @Override
@@ -35,23 +38,25 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
         SingleJavaElement.reset();
         TreeLogger.reset();
 
+        info.checkIfInfoValid();
+        info.checkIfFolderIsReadyForCheckout();
 
-        System.out.println("java writer checkout");
-        Workspace workspace = info.workspace();
-        Folder checkoutFolder = info.folder(); // workspace.its();
-        Logger.debug = info.printDebug();
-        WriterTypeManager writerTypeManager = new WriterTypeManager(workspace);
+        if (info.debugOptions().javaConsole()) System.out.println("java writer checkout");
+        workspace = info.workspace();
+        checkoutFolder = info.folder(); // workspace.its();
+        TreeLogger.debugOptions = info.debugOptions();
+        writerTypeManager = new WriterTypeManager(workspace);
         if (input.size() > 1) {
             System.err.println("checkout received multiple PluginNodes");
         }
         Node pluginNode = input.stream().findFirst().orElse(null);
         if (pluginNode == null) throw new EccoException("the Workspace writer received an empty Node set");
         try {
-            info.checkIfInfoValid(info);
+
 
             for (Node node : pluginNode.getChildren()){
                 if(node.getArtifact().getData() instanceof JavaElement projectElement){
-                    projectElement.build(workspace,checkoutFolder,node,writerTypeManager);
+                    projectElement.build(node,this);
                 }
             }
 

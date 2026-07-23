@@ -5,6 +5,8 @@ import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.commons.Key;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceReader;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceWriter;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -25,23 +27,23 @@ public class MapPropertyArtefact extends PropertyArtefact{
         super(id, name, cardinality);
     }
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper) {
-        Node.Op mapNode = entityFactory.createNode(this);
+    public void createNode(Node.Op InstanceNode,  WorkspaceProperty<?> property, WorkSpaceReader reader) {
+        Node.Op mapNode = reader.entityFactory.createNode(this);
         InstanceNode.addChild(mapNode);
-        addMapNodes(mapNode, (WorkspacePropertyMap<?>) property, entityFactory,idMapper);
+        addMapNodes(mapNode, (WorkspacePropertyMap<?>) property, reader);
     }
 
-    private  void addMapNodes(Node.Op propertyNode, WorkspacePropertyMap<?>  property, EntityFactory entityFactory,IdMapper idMapper){
+    private  void addMapNodes(Node.Op propertyNode, WorkspacePropertyMap<?>  property,  WorkSpaceReader reader){
         Map<?,?> map = property.getMap();
         for (Object key: map.keySet()){
             Object value = map.get(key);
-            Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getName()));
-            addValueNode(keyNode,value,entityFactory,idMapper);
+            Node.Op keyNode = reader.entityFactory.createNode(new StringArtefact( ((Key) key).getName()));
+            addValueNode(keyNode,value,reader);
             propertyNode.addChild(keyNode);
         }
     }
 
-    public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+    public void build(Node propertyNode, WorkspaceElement instance, WorkSpaceWriter writer) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         WorkspacePropertyType propertyType = instance.getInstanceOf().getPropertyType(name);
         Map<Key,ValueArtefact<?>> map = new HashMap<>();
         for (Node keyNode : propertyNode.getChildren()) {
@@ -51,11 +53,11 @@ public class MapPropertyArtefact extends PropertyArtefact{
                 map.put(Key.of(keyString), valueArtefact);
             }else throw new NodeWrongArtefact("the keyNode should have a value of type Key");
         }
-        setMapPropValue(instance,propertyType,map,writerTypeManager);
+        setMapPropValue(instance,propertyType,map,writer);
     }
 
 
-    private void setMapPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Map<Key,ValueArtefact<?>> artefactMap, WriterTypeManager writerTypeManager) {
+    private void setMapPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Map<Key,ValueArtefact<?>> artefactMap, WorkSpaceWriter writer) throws NodeWrongArtefact {
         if(artefactMap.isEmpty()) return;
         if (propertyType.isContained()) {
 
@@ -65,7 +67,7 @@ public class MapPropertyArtefact extends PropertyArtefact{
         if (example instanceof  ReferenceValueArtefact referenceValueArtefact) {
             Map<Key, Long> map = new HashMap<>();
             artefactMap.forEach((key, value) -> map.put(key, (Long) value.getValue()));
-            writerTypeManager.refFixUps.add(new MapFixUp(instance,propertyType,map));
+            writer.writerTypeManager.refFixUps.add(new MapFixUp(instance,propertyType,map));
         }else if (example instanceof SimpleValueArtifact<?>) {
             Map<Key, Object> map = new HashMap<>();
             artefactMap.forEach((key, value) -> map.put(key, value.getValue()));

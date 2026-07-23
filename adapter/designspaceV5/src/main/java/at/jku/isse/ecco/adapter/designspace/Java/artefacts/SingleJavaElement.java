@@ -2,6 +2,7 @@ package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.domains.Java8;
+import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -43,7 +44,7 @@ public class SingleJavaElement extends JavaElement {
     }
 
 
-    private WorkspaceElement getSingleOrCreate(Workspace workspace, Folder folder, WorkspaceElementType instanceType, Node instanceNode, WriterTypeManager writerTypeManager)
+    private WorkspaceElement getSingleOrCreate( WorkspaceElementType instanceType, Node instanceNode, JavaWriter javaWriter)
             throws TypeMangerException {
 
         if (instanceType == null) throw new TypeMangerException("Type not found: " + typeName);
@@ -59,7 +60,7 @@ public class SingleJavaElement extends JavaElement {
         }
 
         try (var scope = TreeLogger.enter("SingleJavaElement [" + typeName + "] name: '" + name + "'")) {
-            WorkspaceElement newInstance = workspace.createWorkspaceElement(instanceType, name, folder);
+            WorkspaceElement newInstance = javaWriter.workspace.createWorkspaceElement(instanceType, name, javaWriter.checkoutFolder);
 
             if (instanceByName != null) {
                 instanceByName.put(this.name, newInstance);
@@ -67,7 +68,7 @@ public class SingleJavaElement extends JavaElement {
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {
                 if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
-                    typeArtefact.build(workspace, folder, propertyTypeNode, newInstance, writerTypeManager);
+                    typeArtefact.build( propertyTypeNode, newInstance, javaWriter);
                 }
             }
             return newInstance;
@@ -76,11 +77,11 @@ public class SingleJavaElement extends JavaElement {
 
 
     @Override
-    public WorkspaceElement build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager)
+    public WorkspaceElement build( Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
-        WorkspaceElement instance = getSingleOrCreate(workspace, folder, instanceType,instanceNode,writerTypeManager);
+        WorkspaceElement instance = getSingleOrCreate( instanceType,instanceNode,javaWriter);
 
 
         return instance;

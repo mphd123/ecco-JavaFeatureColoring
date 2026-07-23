@@ -17,7 +17,9 @@ import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpa
 
 public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
     private final List<WriteListener> listeners = new ArrayList<>();
-
+    public Workspace workspace;
+    public Folder checkoutFolder;
+    public WriterTypeManager writerTypeManager;
 
     @Override
     public String getPluginId() {
@@ -26,18 +28,20 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
 
     @Override
     public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
-        Workspace workspace = info.workspace();
-        Folder checkoutFolder = info.folder(); // workspace.its();
-        Logger.debug = info.printDebug();
-        WriterTypeManager writerTypeManager = new WriterTypeManager(workspace);
+
+        info.checkIfInfoValid();
+        info.checkIfFolderIsReadyForCheckout();
+        workspace = info.workspace();
+         checkoutFolder = info.folder(); // workspace.its();
+        Logger.debug = info.debugOptions().generalAdapterConsole();
+         writerTypeManager = new WriterTypeManager(workspace);
         Node pluginNode = input.stream().findFirst().orElse(null);
         if (pluginNode == null) throw new EccoException("the Workspace writer received an empty Node set");
         try {
-            info.checkIfInfoValid(info);
 
         for (Node node : pluginNode.getChildren()){
             if(node.getArtifact().getData() instanceof CommitFolderArtefact folderArtefact){
-                   folderArtefact.buildFolder(workspace,checkoutFolder,node,writerTypeManager);
+                   folderArtefact.buildFolder(checkoutFolder,node,this);
             }
         }
 

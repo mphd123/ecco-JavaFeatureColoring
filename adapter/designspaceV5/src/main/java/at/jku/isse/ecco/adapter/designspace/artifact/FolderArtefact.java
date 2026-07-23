@@ -3,6 +3,7 @@ package at.jku.isse.ecco.adapter.designspace.artifact;
 import at.jku.isse.designspace.core.model.DesignSpace;
 import at.jku.isse.designspace.core.model.Folder;
 import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceWriter;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -39,14 +40,15 @@ public class FolderArtefact extends CommitFolderArtefact {
     }
 
     @Override
-    public void buildFolder(Workspace workspace, Folder parentFolder, Node folderNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
+    public void buildFolder(Folder parentFolder, Node folderNode, WorkSpaceWriter writer) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
             Folder folder = DesignSpace.createFolder(name,parentFolder);
-            writerTypeManager.newToOriginalId.put(folder.getId(),id);
+
+            writer.writerTypeManager.newToOriginalId.put(folder.getId(),id);
             for (Node child : folderNode.getChildren()) {
                 if (child.getArtifact().getData() instanceof FolderArtefact subFolder) {
-                    subFolder.buildFolder(workspace,folder,child,writerTypeManager);
+                    subFolder.buildFolder(folder,child,writer);
                 }else if ( child.getArtifact().getData() instanceof InstanceTypeArtefact instanceTypeArtefact) {
-                    instanceTypeArtefact.build(workspace,folder,child,writerTypeManager);
+                    instanceTypeArtefact.build(child,folder,writer);
                 }
             }
     }

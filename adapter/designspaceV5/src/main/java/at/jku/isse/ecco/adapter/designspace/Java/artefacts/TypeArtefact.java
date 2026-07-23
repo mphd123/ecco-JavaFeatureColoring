@@ -3,6 +3,7 @@ package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.commons.OrderedSet;
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
@@ -39,30 +40,9 @@ public class TypeArtefact implements JavaArtefact {
         return Objects.hash(qualifiedName, cardinality);
     }
 
-    public void build2(Workspace workspace, Folder folder, Node propertyTypeNode, WorkspaceElement owningElement,WriterTypeManager writerTypeManager)  {
 
-        WorkspacePropertyType property = DesignSpace.getPropertyType(qualifiedName);
-        System.out.println("setting type" + property);
+    public void build(Node propertyTypeNode, WorkspaceElement owningElement, JavaWriter javaWriter)  {
 
-        if (cardinality.equals(Cardinality.SINGLE)){
-            if (owningElement instanceof SimpleValueArtifact){}
-            if (propertyTypeNode.getChildren().size() != 1){
-                System.err.println("TypeArtefact: " + qualifiedName + "Single doent have a single ChildNode it has " + propertyTypeNode.getChildren().size() );
-                if (propertyTypeNode.getChildren().isEmpty()) return;
-            }
-            handleSingleValue(owningElement,workspace,folder,propertyTypeNode.getChildren().get(0),writerTypeManager);
-        } else if (cardinality.equals(Cardinality.MAP)){
-            System.out.println("Java8 has no Map property");
-
-        } else{
-            WorkspacePropertyType propertyType = DesignSpace.getPropertyType(qualifiedName);
-            setCollectionPropValue(owningElement,propertyType,propertyTypeNode.getChildren(),workspace,folder,writerTypeManager);
-
-        }
-
-    }
-
-    public void build(Workspace workspace, Folder folder, Node propertyTypeNode, WorkspaceElement owningElement, WriterTypeManager writerTypeManager) {
 
         try (var scope = TreeLogger.enter("Property: " + qualifiedName + " (" + cardinality + ")")) {
 
@@ -71,15 +51,15 @@ public class TypeArtefact implements JavaArtefact {
                     TreeLogger.log("(empty single property)");
                     return;
                 }
-                handleSingleValue(owningElement, workspace, folder, propertyTypeNode.getChildren().get(0), writerTypeManager);
+                handleSingleValue(owningElement, propertyTypeNode.getChildren().get(0), javaWriter);
             } else if (!cardinality.equals(Cardinality.MAP)) {
                 WorkspacePropertyType propertyType = DesignSpace.getPropertyType(qualifiedName);
-                setCollectionPropValue(owningElement, propertyType, propertyTypeNode.getChildren(), workspace, folder, writerTypeManager);
+                setCollectionPropValue(owningElement, propertyType, propertyTypeNode.getChildren(), javaWriter);
             }
         }
     }
 
-    public void handleSingleValue(WorkspaceElement owningElement,Workspace workspace, Folder folder, Node value ,WriterTypeManager writerTypeManager){
+    public void handleSingleValue(WorkspaceElement owningElement, Node value ,JavaWriter javaWriter){
         WorkspacePropertyType propertyType = DesignSpace.getPropertyType(qualifiedName);
         if (value.getArtifact().getData() instanceof  JavaElement javaElement) {
             // contained elements get there prop set by the container  so skip them
@@ -88,7 +68,7 @@ public class TypeArtefact implements JavaArtefact {
             //}
             WorkspaceElement child = null;
             try {
-                child = javaElement.build(workspace,folder,value,writerTypeManager);
+                child = javaElement.build(value,javaWriter);
             } catch (NodeWrongArtefact | TypeMangerException | ExecutionControl.NotImplementedException e) {
                 throw new RuntimeException(e);
             }
@@ -104,15 +84,12 @@ public class TypeArtefact implements JavaArtefact {
 
 
 
-    private void setCollectionPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, List< ? extends Node> valueNodeCollection, Workspace workspace,Folder folder, WriterTypeManager writerTypeManager) {
-        //System.out.println("setting collection property " + propertyType);
+    private void setCollectionPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, List< ? extends Node> valueNodeCollection, JavaWriter javaWriter) {
+
         if( valueNodeCollection.isEmpty()) {
-            //System.out.println("valueNodeCollection.isEmpty() ");
+
             return;}
-        //if (propertyType.isContained()) {
-         //   System.out.println("propertyType.isContained() ");
-        //    return;
-        //}
+
 
         Node example =  valueNodeCollection.stream().findAny().orElse(null); // they should all be the same artefact
         if (example == null) {
@@ -129,7 +106,7 @@ public class TypeArtefact implements JavaArtefact {
             valueNodeCollection.forEach(( value) ->  {
                 if (value.getArtifact().getData() instanceof JavaElement javaElement){
                     try {
-                        collection.add(javaElement.build(workspace,folder,value,writerTypeManager));
+                        collection.add(javaElement.build(value,javaWriter));
                     } catch (NodeWrongArtefact | ExecutionControl.NotImplementedException | TypeMangerException e) {
                         throw new RuntimeException(e);
                     }

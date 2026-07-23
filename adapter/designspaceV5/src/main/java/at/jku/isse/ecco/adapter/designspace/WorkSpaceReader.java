@@ -25,11 +25,14 @@ import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpa
 
 
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
-    private final EntityFactory entityFactory;
+    public final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
     private HashMap<Long, Node.Op> instanceTypeNodes;
-    IdMapper idMapper;
-    // should be changed to local ones for the subfolders
+
+
+
+
+
 
     @Inject
     public WorkSpaceReader(EntityFactory entityFactory) {
@@ -46,7 +49,9 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
         return Map.of();
     }
 
-    private Workspace workspace;
+    public Workspace workspace;
+    public Folder folder;
+    public IdMapper idMapper;
 
     private EccoException  exception = null;
 
@@ -56,16 +61,18 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
 
     @Override
-    public Set<Node.Op> read(DesignSpaceInfo base, DesignSpaceInfo[] input) {
-        instanceTypeNodes = new HashMap<>();
-        workspace = base.workspace();
-        Folder commitFolder = base.folder();
-        Logger.debug = base.printDebug();
-        Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
-        idMapper = base.idMapper();
-        Node.Op checkinFolderNode = handleFolder(commitFolder,pluginNode,true);
+    public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
+        info.checkIfInfoValid();
 
-        listeners.forEach(listener -> listener.fileReadEvent(Path.of(commitFolder.getQualifiedName()),this));
+        instanceTypeNodes = new HashMap<>();
+        workspace = info.workspace();
+        folder = info.folder();
+        Logger.debug = info.debugOptions().generalAdapterConsole();
+        Node.Op pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace"));
+        idMapper = info.idMapper();
+        Node.Op checkinFolderNode = handleFolder(folder,pluginNode,true);
+
+        listeners.forEach(listener -> listener.fileReadEvent(Path.of(folder.getQualifiedName()),this));
 
         if (!errors.isEmpty()){
             System.err.println("While reading errors the following erros happend");
@@ -200,7 +207,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                         !property.getName().equals("modifiedBy") &&
                         !property.getName().equals("name")) {
                     PropertyArtefactInterface artefact =  createPropArtefact(property.getId(),instanceType, property.getName(), pt.getCardinality());
-                    artefact.createNode(instanceNode,entityFactory,property, idMapper);
+                    artefact.createNode(instanceNode,property, this);
                 }
             }catch (Exception e){
                 errors.add(e);

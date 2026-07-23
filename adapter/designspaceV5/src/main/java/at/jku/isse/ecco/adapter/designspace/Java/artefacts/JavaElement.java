@@ -1,6 +1,7 @@
 package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
 import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
@@ -35,18 +36,18 @@ public class JavaElement implements JavaArtefact {
 
 
 
-    public WorkspaceElement build(Workspace workspace, Folder folder, Node instanceNode, WriterTypeManager writerTypeManager)
+    public WorkspaceElement build(Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
         if (instanceType == null) throw new TypeMangerException("Type not found: " + typeName);
 
         try (var scope = TreeLogger.enter("JavaElement [" + typeName + "] name: '" + name + "'")) {
-            WorkspaceElement instance = workspace.createWorkspaceElement(instanceType, name, folder);
+            WorkspaceElement instance = javaWriter.workspace.createWorkspaceElement(instanceType, name, javaWriter.checkoutFolder);
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {
                 if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
-                    typeArtefact.build(workspace, folder, propertyTypeNode, instance, writerTypeManager);
+                    typeArtefact.build(propertyTypeNode, instance, javaWriter);
                 }
             }
             return instance;

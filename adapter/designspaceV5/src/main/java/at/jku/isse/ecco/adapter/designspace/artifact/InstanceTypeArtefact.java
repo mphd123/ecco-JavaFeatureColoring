@@ -5,6 +5,7 @@ import at.jku.isse.designspace.core.model.Folder;
 
 import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceElementType;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceWriter;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -35,10 +36,10 @@ public class InstanceTypeArtefact implements ArtifactData {
     }
 
 
-    public void build(Workspace workspace, Folder folder, Node typeNode, WriterTypeManager writerTypeManager) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
+    public void build(Node typeNode, Folder folder, WorkSpaceWriter writer) throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException, InstanceTypeException {
         WorkspaceElementType instanceType;
-        if (writerTypeManager.instanceTypeMap.containsKey(id)) {
-            instanceType = writerTypeManager.instanceTypeMap.get(id);
+        if (writer.writerTypeManager.instanceTypeMap.containsKey(id)) {
+            instanceType = writer.writerTypeManager.instanceTypeMap.get(id);
             if (!instanceType.getName().equals(name))
                 throw new InstanceTypeException(String.format("the names of the artefact and the already existing Type are not equal artefact[%s] . existing[%s]", name, instanceType.getName()));
 
@@ -52,7 +53,7 @@ public class InstanceTypeArtefact implements ArtifactData {
         }
         for (Node instanceNode : typeNode.getChildren()) {
             InstanceArtefact instanceArtefact = (InstanceArtefact) instanceNode.getArtifact().getData();
-            instanceArtefact.build(workspace, folder, instanceNode, writerTypeManager);
+            instanceArtefact.build(instanceNode, folder, writer);
         }
     }
 

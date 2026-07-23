@@ -6,6 +6,7 @@ import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.core.model.*;
 
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceReader;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
@@ -56,17 +57,17 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
         return cardinality;
     }
 
-    protected void addValueNode(Node.Op propertyNode, Object value, EntityFactory entityFactory, IdMapper idMapper){
+    protected void addValueNode(Node.Op propertyNode, Object value, WorkSpaceReader reader){
         if (value instanceof WorkspaceElement instanceValue) {
-            Long originalId = idMapper.getOriginalId(instanceValue.getId());
-            propertyNode.addChild(entityFactory.createNode(new ReferenceValueArtefact( originalId  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
+            Long originalId = reader.idMapper.getOriginalId(instanceValue.getId());
+            propertyNode.addChild(reader.entityFactory.createNode(new ReferenceValueArtefact( originalId  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
             if (originalId == null)  Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
                 else  Logger.log("Debug Reader AddValueNode : Value= " +originalId);
 
 
 
         }else{
-            propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
+            propertyNode.addChild(reader.entityFactory.createNode(new SimpleValueArtifact<>(value)));
             if (value == null)  Logger.log("Debug Reader AddValueNode :  Value= " +null);
             else  Logger.log("Debug Reader AddValueNode :  Value= " +value.toString());
 

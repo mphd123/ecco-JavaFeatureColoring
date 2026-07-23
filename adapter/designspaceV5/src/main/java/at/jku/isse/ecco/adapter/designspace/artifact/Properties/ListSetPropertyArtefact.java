@@ -6,6 +6,8 @@ import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.commons.OrderedSet;
 import at.jku.isse.designspace.core.model.*;
 import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceReader;
+import at.jku.isse.ecco.adapter.designspace.WorkSpaceWriter;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
@@ -27,22 +29,22 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
         super(id, name, cardinality);
     }
 
-    public void createNode(Node.Op InstanceNode, EntityFactory entityFactory, WorkspaceProperty<?> property, IdMapper idMapper) throws ExecutionControl.NotImplementedException {
-        Node.Op setNode = entityFactory.createNode(this);
+    public void createNode(Node.Op InstanceNode,  WorkspaceProperty<?> property, WorkSpaceReader reader) throws ExecutionControl.NotImplementedException {
+        Node.Op setNode = reader.entityFactory.createNode(this);
         InstanceNode.addChild(setNode);
-        addNodes(setNode, property, entityFactory,idMapper );
+        addNodes(setNode, property,reader );
     }
 
-    private void addNodes(Node.Op propertyNode, WorkspaceProperty<?> property, EntityFactory entityFactory,IdMapper idMapper) throws ExecutionControl.NotImplementedException {
+    private void addNodes(Node.Op propertyNode, WorkspaceProperty<?> property, WorkSpaceReader reader) throws ExecutionControl.NotImplementedException {
         // not sure why CollectionProperty does not have a get
         if (property instanceof WorkspacePropertyUnorderedSet<?> || property instanceof WorkspacePropertyList<?> || property instanceof WorkspacePropertyOrderedSet<?>) {
             for (Object value: property.getCollection()){
-                addValueNode(propertyNode,value,entityFactory,idMapper);
+                addValueNode(propertyNode,value,reader);
             }
         } else throw new ExecutionControl.NotImplementedException("for handling collectionProperties only List and (ordered) Sets are supported");
     }
 
-    public void build(Node propertyNode, WorkspaceElement instance, WriterTypeManager writerTypeManager) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+    public void build(Node propertyNode, WorkspaceElement instance, WorkSpaceWriter writer) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         WorkspacePropertyType propertyType = instance.getInstanceOf().getPropertyType(name);
         // for sets there should be no duplicates in hte nodes
         List<ValueArtefact<?>> list = new ArrayList<>();
@@ -50,11 +52,11 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
             ValueArtefact<?> valueArtefact = getValueArtefact(valueNode);
             list.add(valueArtefact);
         }
-        setCollectionPropValue(instance,propertyType,list,writerTypeManager);
+        setCollectionPropValue(instance,propertyType,list,writer);
     }
 
 
-    private void setCollectionPropValue( WorkspaceElement instance, WorkspacePropertyType propertyType, Collection<ValueArtefact<?>> artefactCollection, WriterTypeManager writerTypeManager) {
+    private void setCollectionPropValue( WorkspaceElement instance, WorkspacePropertyType propertyType, Collection<ValueArtefact<?>> artefactCollection,WorkSpaceWriter writer) {
         if(artefactCollection.isEmpty()) return;
         if (propertyType.isContained()) {
             return;
@@ -68,7 +70,7 @@ public class ListSetPropertyArtefact extends PropertyArtefact {
             else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
 
             artefactCollection.forEach(( value) ->  collection.add((Long) value.getValue()));
-            writerTypeManager.refFixUps.add(new CollectionFixUp(instance,propertyType,collection));
+            writer.writerTypeManager.refFixUps.add(new CollectionFixUp(instance,propertyType,collection));
         }else if (example instanceof SimpleValueArtifact<?>) {
             Collection<Object> collection;
             if(propertyType.getCardinality().equals(Cardinality.UNORDERED_SET)|| propertyType.getCardinality().equals(Cardinality.ORDERED_SET )) collection = new OrderedSet<>();
