@@ -78,6 +78,7 @@ public class DesignSpaceService extends EccoService {
 
     public synchronized Checkout checkoutDesignspace(String  configurationString, DesignSpaceInfo info) {
         assert(info != null);
+        designSpaceInfo = info;
         Configuration configuration = parseConfigurationString(configurationString);
         Checkout checkout = compose(configuration);
         Set<Node> nodes = compareArtifacts(checkout);
