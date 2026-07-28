@@ -1,15 +1,11 @@
 package at.jku.isse.ecco.adapter.designspace.artifact;
 
-import at.jku.isse.designspace.core.model.DesignSpace;
 import at.jku.isse.designspace.core.model.Folder;
-
-import at.jku.isse.designspace.core.model.Workspace;
 import at.jku.isse.designspace.core.model.WorkspaceElementType;
 import at.jku.isse.ecco.adapter.designspace.WorkSpaceWriter;
 import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
-import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.artifact.ArtifactData;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
@@ -26,7 +22,7 @@ public class InstanceTypeArtefact implements ArtifactData {
     public final String languageWorkspaceName;
     Collection<Long> superIds = new HashSet<>();
 
-    public InstanceTypeArtefact(String name, Long id, String languageWorkspaceName,Collection<WorkspaceElementType> superTypes) {
+    public InstanceTypeArtefact(String name, Long id, String languageWorkspaceName, Collection<WorkspaceElementType> superTypes) {
         this.name = name;
         this.id = id;
         this.languageWorkspaceName = languageWorkspaceName;

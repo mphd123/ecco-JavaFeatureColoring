@@ -1,24 +1,18 @@
 package at.jku.isse.ecco.adapter.designspace.artifact.Properties;
 
 
-
 import at.jku.isse.designspace.commons.Cardinality;
-import at.jku.isse.designspace.core.model.*;
-
-import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
 import at.jku.isse.ecco.adapter.designspace.WorkSpaceReader;
+import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.ValueArtefact;
-import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.util.Logger;
-import at.jku.isse.ecco.adapter.designspace.util.RefProeprtyFixupRecord;
-import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
-import at.jku.isse.ecco.dao.EntityFactory;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
-import java.util.*;
+import java.util.Objects;
 
 public abstract class PropertyArtefact implements PropertyArtefactInterface {
     protected final Long id;
@@ -57,36 +51,33 @@ public abstract class PropertyArtefact implements PropertyArtefactInterface {
         return cardinality;
     }
 
-    protected void addValueNode(Node.Op propertyNode, Object value, WorkSpaceReader reader){
+    protected void addValueNode(Node.Op propertyNode, Object value, WorkSpaceReader reader) {
         if (value instanceof WorkspaceElement instanceValue) {
             Long originalId = reader.idMapper.getOriginalId(instanceValue.getId());
-            propertyNode.addChild(reader.entityFactory.createNode(new ReferenceValueArtefact( originalId  , instanceValue.getName(),instanceValue.getInstanceOf().getName())));
-            if (originalId == null)  Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
-                else  Logger.log("Debug Reader AddValueNode : Value= " +originalId);
+            propertyNode.addChild(reader.entityFactory.createNode(new ReferenceValueArtefact(originalId, instanceValue.getName(), instanceValue.getInstanceOf().getName())));
+            if (originalId == null)
+                Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
+            else Logger.log("Debug Reader AddValueNode : Value= " + originalId);
 
 
-
-        }else{
+        } else {
             propertyNode.addChild(reader.entityFactory.createNode(new SimpleValueArtifact<>(value)));
-            if (value == null)  Logger.log("Debug Reader AddValueNode :  Value= " +null);
-            else  Logger.log("Debug Reader AddValueNode :  Value= " +value.toString());
+            if (value == null) Logger.log("Debug Reader AddValueNode :  Value= " + null);
+            else Logger.log("Debug Reader AddValueNode :  Value= " + value.toString());
 
         }
 
     }
-    protected  ValueArtefact<?> getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
+
+    protected ValueArtefact<?> getValueArtefact(Node valueNode) throws ExecutionControl.NotImplementedException, NodeWrongArtefact {
         if (valueNode.getArtifact().getData() instanceof ReferenceValueArtefact refArtefact) {
             return refArtefact;
-        }else if (valueNode.getArtifact().getData() instanceof ValueArtefact<?> valueartefact) {
+        } else if (valueNode.getArtifact().getData() instanceof ValueArtefact<?> valueartefact) {
             return valueartefact;
         } else {
             throw new NodeWrongArtefact(" wrong artefact for value");
         }
     }
-
-
-
-
 
 
 }

@@ -1,26 +1,25 @@
 package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
-import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.model.DesignSpace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
+import at.jku.isse.designspace.core.model.WorkspaceElementType;
 import at.jku.isse.designspace.domains.Java8;
 import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
-import at.jku.isse.ecco.adapter.designspace.util.Logger;
-import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class SingleJavaElement extends JavaElement {
 
     public SingleJavaElement(String name, String typeName) {
         super(name, typeName);
     }
+
     public static final Map<WorkspaceElementType, Map<String, WorkspaceElement>> allSingles = new HashMap<>();
 
     static {
@@ -44,7 +43,7 @@ public class SingleJavaElement extends JavaElement {
     }
 
 
-    private WorkspaceElement getSingleOrCreate( WorkspaceElementType instanceType, Node instanceNode, JavaWriter javaWriter)
+    private WorkspaceElement getSingleOrCreate(WorkspaceElementType instanceType, Node instanceNode, JavaWriter javaWriter)
             throws TypeMangerException {
 
         if (instanceType == null) throw new TypeMangerException("Type not found: " + typeName);
@@ -67,8 +66,8 @@ public class SingleJavaElement extends JavaElement {
             }
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {
-                if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
-                    typeArtefact.build( propertyTypeNode, newInstance, javaWriter);
+                if (propertyTypeNode.getArtifact().getData() instanceof PropTypeArtefact propTypeArtefact) {
+                    propTypeArtefact.build(propertyTypeNode, newInstance, javaWriter);
                 }
             }
             return newInstance;
@@ -77,14 +76,12 @@ public class SingleJavaElement extends JavaElement {
 
 
     @Override
-    public WorkspaceElement build( Node instanceNode, JavaWriter javaWriter)
+    public WorkspaceElement build(Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
-        WorkspaceElement instance = getSingleOrCreate( instanceType,instanceNode,javaWriter);
 
-
-        return instance;
+        return getSingleOrCreate(instanceType, instanceNode, javaWriter);
     }
 
 }

@@ -2,17 +2,18 @@ package at.jku.isse.ecco.adapter.designspace.Java;
 
 import at.jku.isse.designspace.commons.Cardinality;
 import at.jku.isse.designspace.commons.Key;
-import at.jku.isse.designspace.core.model.*;
-import at.jku.isse.designspace.core.model.ecco.IdMapper;
+import at.jku.isse.designspace.core.model.Folder;
+import at.jku.isse.designspace.core.model.Workspace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
+import at.jku.isse.designspace.core.model.WorkspacePropertyType;
 import at.jku.isse.designspace.domains.Java8;
 import at.jku.isse.ecco.EccoException;
 import at.jku.isse.ecco.adapter.ArtifactReader;
 import at.jku.isse.ecco.adapter.designspace.DesignSpacePlugin;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaElement;
+import at.jku.isse.ecco.adapter.designspace.Java.artefacts.PropTypeArtefact;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.SingleJavaElement;
-import at.jku.isse.ecco.adapter.designspace.Java.artefacts.TypeArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
-import at.jku.isse.ecco.adapter.designspace.artifact.value.ReferenceValueArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
 import at.jku.isse.ecco.adapter.designspace.util.Logger;
@@ -21,7 +22,6 @@ import at.jku.isse.ecco.service.listener.ReadListener;
 import at.jku.isse.ecco.tree.Node;
 import com.google.inject.Inject;
 
-import javax.lang.model.util.Elements;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,11 +36,8 @@ import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpater
 public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
-    private HashMap<Long, Node.Op> instanceTypeNodes;
 
     private final Set<WorkspaceElement> processedElements = new HashSet<>();
-    private Java8 java;
-    IdMapper idMapper;
     // should be changed to local ones for the subfolders
 
     @Inject
@@ -67,7 +64,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     // to be correct here should only be one per Name if a name is shared there is a conflict
 
 
-
     @Override
     public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
 
@@ -76,15 +72,14 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
         info.checkIfInfoValid();
 
-        Node.Op pluginNode;
-        try{
-            if (info.debugOptions().javaConsole()) System.out.println("javareader commit");
 
-            instanceTypeNodes = new HashMap<>();
+        Node.Op pluginNode;
+        try {
+            if (Java8.JAVA_PROJECT == null) throw new EccoException("Java8 is properly not initialised ");
+            if (info.debugOptions().javaConsole()) System.out.println("javareader commit");
             workspace = info.workspace();
             Folder commitFolder = info.folder();
             TreeLogger.debugOptions = info.debugOptions();
-            idMapper = info.idMapper();
 
             pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
             handleProject(commitFolder, pluginNode);
@@ -94,17 +89,17 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
             }
             if (info.debugOptions().javaConsole()) {
                 System.out.println("\n=== GENERATED TREE ===");
-                printNodeTreeToConsole(pluginNode,10);
-                printNodeTreeToFile(pluginNode,"CommitData.txt");
+                printNodeTreeToConsole(pluginNode, 10);
+                printNodeTreeToFile(pluginNode, "CommitData.txt");
                 System.out.println("==========================\n");
             }
 
             if (info.debugOptions().javaLogFile()) {
-                printNodeTreeToFile(pluginNode,"CommitData.txt");
+                printNodeTreeToFile(pluginNode, "CommitData.txt");
             }
 
 
-        }finally {
+        } finally {
             processedElements.clear();
             SingleJavaElement.reset();
         }
@@ -114,8 +109,8 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     }
 
     @Override
-    public Set<Node.Op> read(DesignSpaceInfo[] input)  {
-        return read(input[0],input);
+    public Set<Node.Op> read(DesignSpaceInfo[] input) {
+        return read(input[0], input);
     }
 
     @Override
@@ -129,21 +124,21 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     }
 
 
-    private void handleProject(Folder folder,Node.Op pluginNode){
-        if(Java8.JAVA_PROJECT == null) {
+    private void handleProject(Folder folder, Node.Op pluginNode) {
+        if (Java8.JAVA_PROJECT == null) {
             throw new EccoException("java 8 not initialized");
         }
 
 
         Set<WorkspaceElement> projects = folder.getWorkspaceElementContents(workspace).stream().filter(workspaceElement -> workspaceElement.isInstanceOf(Java8.JAVA_PROJECT)).collect(Collectors.toSet());
-        for (WorkspaceElement project : projects){
-            Node.Op projectNode = handleJavaElement(pluginNode,project);
+        for (WorkspaceElement project : projects) {
+            Node.Op projectNode = handleJavaElement(project);
             pluginNode.addChild(projectNode);
         }
     }
 
 
-    private Node.Op handleJavaElement(Node.Op parentNode, WorkspaceElement element){
+    private Node.Op handleJavaElement(WorkspaceElement element) {
         if (element == null) {
             System.err.println(" during the Read process for java elements one child element is null");
             return null;
@@ -160,13 +155,13 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         System.out.println("handeling" + element);
         Node.Op ElementNode;
         if (SingleJavaElement.allSingles.containsKey(element.getInstanceOf())) {
-            ElementNode = entityFactory.createOrderedNode(new SingleJavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
-        }else{
-            ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(),element.getInstanceOf().getQualifiedName()));
+            ElementNode = entityFactory.createOrderedNode(new SingleJavaElement(element.getName(), element.getInstanceOf().getQualifiedName()));
+        } else {
+            ElementNode = entityFactory.createOrderedNode(new JavaElement(element.getName(), element.getInstanceOf().getQualifiedName()));
         }
 
 
-        if (!element.isInstanceOf(Java8.JAVA_ELEMENT)){
+        if (!element.isInstanceOf(Java8.JAVA_ELEMENT)) {
             //System.err.println(" during the Read process for java elements one child element does not belong to java8" + element +" instance of " + element.getInstanceOf());
             return null;
         }
@@ -179,29 +174,30 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         }
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
 
-            if (!Filter.shouldProcessProperty(propType)) { // shouldProcessProperty(propType)
+            if (element.getOrCreateProperty(propType).getRaw() == null) continue; // skip empty
+
+            if (!Filter.shouldProcessProperty(propType)) {
                 continue;
             }
 
-            Node.Op propTypeNode = entityFactory.createOrderedNode(new TypeArtefact(propType.getQualifiedName(),propType.getCardinality()));
+            Node.Op propTypeNode = entityFactory.createOrderedNode(new PropTypeArtefact(propType.getQualifiedName(), propType.getCardinality()));
 
             Node childElement;
-            if (propType.getCardinality().equals(Cardinality.SINGLE)){
-                addValueNode(propTypeNode,element.getOrCreateProperty(propType).get());
-            }else if (propType.getCardinality().equals(Cardinality.MAP)) {
+            if (propType.getCardinality().equals(Cardinality.SINGLE)) {
+                addValueNode(propTypeNode, element.getOrCreateProperty(propType).get());
+            } else if (propType.getCardinality().equals(Cardinality.MAP)) {
 
                 element.getMap(propType).forEach((key, value) -> {
-                    Node.Op keyNode = entityFactory.createNode(new StringArtefact( ((Key) key).getName()));
-                    addValueNode(keyNode,value);
+                    Node.Op keyNode = entityFactory.createNode(new StringArtefact(((Key) key).getName()));
+                    addValueNode(keyNode, value);
                     propTypeNode.addChild(keyNode);
                 });
 
             } else {
                 Collection<Object> values = element.getCollection(propType);
                 for (Object value : values) {
-                    addValueNode(propTypeNode,value);
+                    addValueNode(propTypeNode, value);
                 }
-
 
             }
             ElementNode.addChild(propTypeNode);
@@ -212,26 +208,21 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     }
 
 
-
-    void addValueNode(Node.Op propertyNode, Object value){
-        if (value == null)return;
+    void addValueNode(Node.Op propertyNode, Object value) {
+        if (value == null) return;
         if (value instanceof WorkspaceElement instanceValue) {
-            Long originalId = idMapper.getOriginalId(instanceValue.getId());
-            Node.Op element = handleJavaElement(propertyNode, instanceValue);
-            if (element != null){
+            Node.Op element = handleJavaElement(instanceValue);
+            if (element != null) {
                 propertyNode.addChild(element);
             }
-            if (originalId == null)  Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
-            else  Logger.log("Debug Reader AddValueNode : Value= " +originalId);
-        }else{
+            Logger.log("Debug Reader AddValueNode : Value= Warning original id was null for " + instanceValue.getId());
+        } else {
             propertyNode.addChild(entityFactory.createNode(new SimpleValueArtifact<>(value)));
-            if (value == null)  Logger.log("Debug Reader AddValueNode :  Value= " +null);
-            else  Logger.log("Debug Reader AddValueNode :  Value= " +value.toString());
+            Logger.log("Debug Reader AddValueNode :  Value= " + value.toString());
 
         }
 
     }
-
 
 
     public void printNodeTreeToFile(Node node, String filePath) {
@@ -248,7 +239,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
             for (int i = 0; i < children.size(); i++) {
                 printNodeTreeRecursive(children.get(i), "", i == children.size() - 1, writer, 1, Integer.MAX_VALUE);
             }
-
 
             if (writer.checkError()) {
                 throw new IOException("Stream error encountered while writing tree output.");
@@ -309,8 +299,8 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
             return "JavaElement [" + javaElement.typeName + "] name: '" + javaElement.name + "'";
         } else if (artifact instanceof SingleJavaElement singleElement) {
             return "SingleJavaElement [" + singleElement.typeName + "] name: '" + singleElement.name + "'";
-        } else if (artifact instanceof TypeArtefact typeArtefact) {
-            return "Property: " + typeArtefact.qualifiedName + " (" + typeArtefact.cardinality + ")";
+        } else if (artifact instanceof PropTypeArtefact propTypeArtefact) {
+            return "Property: " + propTypeArtefact.qualifiedName + " (" + propTypeArtefact.cardinality + ")";
         } else if (artifact instanceof StringArtefact stringArtefact) {
             return "StringArtefact: '" + stringArtefact.getValue() + "'";
         } else if (artifact instanceof SimpleValueArtifact<?> simpleValue) {

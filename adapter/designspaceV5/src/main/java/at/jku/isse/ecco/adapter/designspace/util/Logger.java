@@ -4,16 +4,17 @@ import at.jku.isse.designspace.core.model.WorkspaceElement;
 
 public class Logger {
     // turn of or on
-    public static  boolean debug = false;
+    public static boolean debug = false;
     //limit to elements
     public static boolean enabledAndThenDisabled = false;
+
     public static void log(String message, WorkspaceElement instance) {
 
-        if (!enabledAndThenDisabled || !debug)return;
-        if(instance==null) {
-            System.out.println("Debug "  + message);
-        }else if (isToBeLoggedType(instance)) {
-            System.out.println("Debug instance= " + instance.getName() + " with type"  +instance.getInstanceOf() +"\n -------------------------------------------------------------------- " + message + "\n");
+        if (!enabledAndThenDisabled || !debug) return;
+        if (instance == null) {
+            System.out.println("Debug " + message);
+        } else if (isToBeLoggedType(instance)) {
+            System.out.println("Debug instance= " + instance.getName() + " with type" + instance.getInstanceOf() + "\n -------------------------------------------------------------------- " + message + "\n");
         }
     }
 

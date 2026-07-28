@@ -6,6 +6,7 @@ import at.jku.isse.designspace.core.model.WorkspaceElement;
 import java.util.Map;
 
 public interface RefFixUpInterFace {
-    void fixUp(Workspace workspace, Map<Long,Long> newToOriginalId);
+    void fixUp(Workspace workspace, Map<Long, Long> newToOriginalId);
+
     WorkspaceElement getInstance();
 }

@@ -1,13 +1,12 @@
 package at.jku.isse.ecco.adapter.designspace.Java.artefacts;
 
-import at.jku.isse.designspace.core.model.*;
+import at.jku.isse.designspace.core.model.DesignSpace;
+import at.jku.isse.designspace.core.model.WorkspaceElement;
+import at.jku.isse.designspace.core.model.WorkspaceElementType;
 import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
-import at.jku.isse.ecco.adapter.designspace.exception.InstanceTypeException;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
-import at.jku.isse.ecco.adapter.designspace.util.Logger;
-import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.tree.Node;
 import jdk.jshell.spi.ExecutionControl;
 
@@ -35,7 +34,6 @@ public class JavaElement implements JavaArtefact {
     }
 
 
-
     public WorkspaceElement build(Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
@@ -46,8 +44,8 @@ public class JavaElement implements JavaArtefact {
             WorkspaceElement instance = javaWriter.workspace.createWorkspaceElement(instanceType, name, javaWriter.checkoutFolder);
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {
-                if (propertyTypeNode.getArtifact().getData() instanceof TypeArtefact typeArtefact) {
-                    typeArtefact.build(propertyTypeNode, instance, javaWriter);
+                if (propertyTypeNode.getArtifact().getData() instanceof PropTypeArtefact propTypeArtefact) {
+                    propTypeArtefact.build(propertyTypeNode, instance, javaWriter);
                 }
             }
             return instance;

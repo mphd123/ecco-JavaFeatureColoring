@@ -8,7 +8,6 @@ import at.jku.isse.ecco.adapter.designspace.DesignSpacePlugin;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaElement;
 import at.jku.isse.ecco.adapter.designspace.Java.artefacts.SingleJavaElement;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
-import at.jku.isse.ecco.adapter.designspace.util.Logger;
 import at.jku.isse.ecco.adapter.designspace.util.WriterTypeManager;
 import at.jku.isse.ecco.service.listener.WriteListener;
 import at.jku.isse.ecco.tree.Node;
@@ -26,10 +25,9 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
     public Folder checkoutFolder;
     public WriterTypeManager writerTypeManager;
 
-
     @Override
     public String getPluginId() {
-        return  new DesignSpacePlugin().getPluginId();
+        return new DesignSpacePlugin().getPluginId();
     }
 
     @Override
@@ -54,35 +52,33 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
         try {
 
 
-            for (Node node : pluginNode.getChildren()){
-                if(node.getArtifact().getData() instanceof JavaElement projectElement){
-                    projectElement.build(node,this);
+            for (Node node : pluginNode.getChildren()) {
+                if (node.getArtifact().getData() instanceof JavaElement projectElement) {
+                    projectElement.build(node, this);
                 }
             }
 
             workspace.acceptAllChanges();
             workspace.conclude();
-            writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId) );
+            writerTypeManager.newToOriginalId.forEach((newId, OldId) -> info.idMapper().putIds(newId, OldId));
         } catch (Exception e) {
             e.printStackTrace();
 
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             SingleJavaElement.reset();
             TreeLogger.reset();
 
         }
 
 
-
-
-        listeners.forEach(listener -> listener.fileWriteEvent(Path.of(checkoutFolder.getQualifiedName()),this));
+        listeners.forEach(listener -> listener.fileWriteEvent(Path.of(checkoutFolder.getQualifiedName()), this));
         return new DesignSpaceInfo[0];
     }
 
 
     @Override
-    public DesignSpaceInfo[] write(Set<Node> input){
+    public DesignSpaceInfo[] write(Set<Node> input) {
         throw new RuntimeException("write(Set<Node> input) is not implemented ");
         //return new Pair[0];
     }

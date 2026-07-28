@@ -11,7 +11,7 @@ public class RefIdSearcher {
 
     final Workspace workspace;
     final Long originalId;
-    final Map<Long,Long> newToOriginalId;
+    final Map<Long, Long> newToOriginalId;
     // folders that are searched i nthe parent chain
     private final Set<Folder> searchedFolders = new HashSet<>();
 
@@ -24,29 +24,30 @@ public class RefIdSearcher {
 
     public Optional<WorkspaceElement> search(Folder folder) {
         List<Long> relevantIds = new ArrayList<>();
-        newToOriginalId.forEach((k,v)->{
+        newToOriginalId.forEach((k, v) -> {
             if (v.equals(originalId)) {
-            relevantIds.add(k);
+                relevantIds.add(k);
             }
         });
 
         AtomicLong directFound = new AtomicLong(-1);
 
-        TreeMap<Integer,Long> parentSteps = new TreeMap<>(); 
+        TreeMap<Integer, Long> parentSteps = new TreeMap<>();
         relevantIds.forEach((id) -> {
             WorkspaceElement element = workspace.getWorkspaceElement(id);
             Folder elementFolder = element.getFolder();
             if (elementFolder == folder) {
-                if(directFound.get() != -1) {
+                if (directFound.get() != -1) {
                     try {
                         System.err.println("in Folder" + folder + "there are at least two elemnts who with id mapper share the original id "
-                                + workspace.getWorkspaceElement(directFound.get()) +"new found is" + workspace.getWorkspaceElement(id) );
-                    }catch (Exception e){
+                                + workspace.getWorkspaceElement(directFound.get()) + "new found is" + workspace.getWorkspaceElement(id));
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                     return;
-                };
+                }
+                ;
                 directFound.set(id);
                 return;
             }
@@ -55,11 +56,11 @@ public class RefIdSearcher {
             while (searchFolder != null) {
                 if (searchFolder.equals(elementFolder)) {
                     Long nullCHeck = parentSteps.put(steps, id);
-                    if(nullCHeck != null) {
+                    if (nullCHeck != null) {
                         try {
                             System.err.println("in Folder" + searchFolder + "there are at least two elemnts who with id mapper share the original id previous was "
-                            + workspace.getWorkspaceElement(nullCHeck) +"new found is" + workspace.getWorkspaceElement(id)  );
-                        }catch (Exception e){
+                                    + workspace.getWorkspaceElement(nullCHeck) + "new found is" + workspace.getWorkspaceElement(id));
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         return;
@@ -72,31 +73,32 @@ public class RefIdSearcher {
         });
         if (directFound.get() != -1) {
             Logger.log("Found existing element with id " + directFound.get() + " original Element was " + workspace.getWorkspaceElement(originalId)
-            + " found element is  " + workspace.getWorkspaceElement(directFound.get()).toString());
+                    + " found element is  " + workspace.getWorkspaceElement(directFound.get()).toString());
             return Optional.of(workspace.getWorkspaceElement(directFound.get()));
 
         }
-        if(!parentSteps.isEmpty()) return Optional.of(workspace.getWorkspaceElement(parentSteps.keySet().stream().findFirst().get()));
-        // search in child Folders
+        if (!parentSteps.isEmpty())
+            return Optional.of(workspace.getWorkspaceElement(parentSteps.keySet().stream().findFirst().get()));
+            // search in child Folders
         else return Optional.empty();
 
     }
 
-    public Optional<WorkspaceElement> getClosestInstance(Folder folder ) {
+    public Optional<WorkspaceElement> getClosestInstance(Folder folder) {
         // revisit not sure about getInstances workspace
-        Optional<WorkspaceElement> result  = checkInstances(folder);
+        Optional<WorkspaceElement> result = checkInstances(folder);
         searchedFolders.add(folder);
-        if(result.isPresent()) return result;
-        if(folder.getParentFolder()== null) return result;
+        if (result.isPresent()) return result;
+        if (folder.getParentFolder() == null) return result;
         result = getClosestInstance(folder.getParentFolder());
-        if(result.isPresent()) return result;
+        if (result.isPresent()) return result;
 
         // in the case where the to ref value is not in this folder and not directly in the parent folder chain
         // check in the subFolders
         for (Folder subFolder : folder.getSubFolders()) {
-            if(searchedFolders.contains(subFolder)) continue;
+            if (searchedFolders.contains(subFolder)) continue;
             result = checkSubFolders(subFolder);
-            if(result.isPresent()) return result;
+            if (result.isPresent()) return result;
         }
 
 
@@ -105,21 +107,21 @@ public class RefIdSearcher {
 
     private Optional<WorkspaceElement> checkInstances(Folder folder) {
         for (WorkspaceElement otherInstance : folder.getWorkspaceElementContents(workspace)) {
-            if (newToOriginalId.containsKey(otherInstance.getId()) && Objects.equals(newToOriginalId.get(otherInstance.getId()), originalId)){
+            if (newToOriginalId.containsKey(otherInstance.getId()) && Objects.equals(newToOriginalId.get(otherInstance.getId()), originalId)) {
                 return Optional.of(otherInstance);
             }
         }
         return Optional.empty();
     }
 
-    private Optional<WorkspaceElement> checkSubFolders(Folder folder){
+    private Optional<WorkspaceElement> checkSubFolders(Folder folder) {
         Optional<WorkspaceElement> result = checkInstances(folder);
-        if(result.isPresent()) return result;
+        if (result.isPresent()) return result;
 
         for (Folder subFolder : folder.getSubFolders()) {
-            if(!searchedFolders.contains(subFolder)) {
+            if (!searchedFolders.contains(subFolder)) {
                 result = checkSubFolders(subFolder);
-                if(result.isPresent()) return result;
+                if (result.isPresent()) return result;
             }
 
         }

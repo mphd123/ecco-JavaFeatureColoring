@@ -1,6 +1,6 @@
 package at.jku.isse.ecco.adapter.designspace.exception;
 
-public class WorkspaceException extends IllegalArgumentException{
+public class WorkspaceException extends IllegalArgumentException {
 
     private static final String EXCEPTION_MESSAGE = "THe provided workspace is invalid because ";
 

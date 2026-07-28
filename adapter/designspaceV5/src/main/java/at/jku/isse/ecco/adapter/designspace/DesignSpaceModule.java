@@ -1,15 +1,17 @@
 package at.jku.isse.ecco.adapter.designspace;
 
-import at.jku.isse.ecco.adapter.*;
+import at.jku.isse.ecco.adapter.ArtifactReader;
+import at.jku.isse.ecco.adapter.ArtifactWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.JavaReader;
 import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
-import at.jku.isse.ecco.tree.*;
-import com.google.inject.*;
-import com.google.inject.multibindings.*;
+import at.jku.isse.ecco.tree.Node;
+import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.Multibinder;
 
-
-import java.util.*;
+import java.util.Set;
 
 public class DesignSpaceModule extends AbstractModule {
 
@@ -17,7 +19,8 @@ public class DesignSpaceModule extends AbstractModule {
     public static final String generalAdpaterString = "general";
 
     @Inject
-    public DesignSpaceModule() {    }
+    public DesignSpaceModule() {
+    }
 
     @Override
     protected void configure() {
