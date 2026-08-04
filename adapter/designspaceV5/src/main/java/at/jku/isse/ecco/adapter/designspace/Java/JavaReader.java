@@ -36,9 +36,7 @@ import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpater
 public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
     private final EntityFactory entityFactory;
     private final List<ReadListener> listeners = new ArrayList<>();
-
     private final Set<WorkspaceElement> processedElements = new HashSet<>();
-    // should be changed to local ones for the subfolders
 
     @Inject
     public JavaReader(EntityFactory entityFactory) {
@@ -60,10 +58,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     private EccoException exception = null;
     private List<Exception> errors = new ArrayList<>();
 
-
-    // to be correct here should only be one per Name if a name is shared there is a conflict
-
-
     @Override
     public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
 
@@ -71,7 +65,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         SingleJavaElement.reset();
 
         info.checkIfInfoValid();
-
 
         Node.Op pluginNode;
         try {
@@ -122,7 +115,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
     public void removeListener(ReadListener listener) {
 
     }
-
 
     private void handleProject(Folder folder, Node.Op pluginNode) {
         if (Java8.JAVA_PROJECT == null) {
@@ -311,7 +303,6 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
         return "NullArtifact";
     }
-
 
     @Override
     public String toString() {
