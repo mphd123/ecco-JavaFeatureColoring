@@ -54,8 +54,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
     }
 
     private Workspace workspace;
-    ;
-    private List<Exception> errors = new ArrayList<>();
+
 
     @Override
     public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
@@ -74,10 +73,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
 
             pluginNode = entityFactory.createOrderedNode(new StringArtefact("plugin Node Designspace Java"));
             handleProject(commitFolder, pluginNode);
-            if (!errors.isEmpty()) {
-                System.err.println("While reading  the following errors happened");
-                errors.forEach(e -> e.printStackTrace());
-            }
+
             if (info.debugOptions().javaConsole()) {
                 System.out.println("\n=== GENERATED TREE ===");
                 printNodeTreeToConsole(pluginNode, 10);
@@ -135,7 +131,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
             pluginNode.addChild(projectNode);
         }
         Set<WorkspaceElement> remainingElements = new HashSet<>(folder.getWorkspaceElementContents(workspace));
-        remainingElements.remove(processedElements);
+        remainingElements.removeAll(processedElements);
         // other  elements that have not been translated yet
         for(WorkspaceElement remaining : remainingElements ){
             Node.Op projectNode = handleWorkspaceElement(remaining);
@@ -163,7 +159,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
 
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
 
-            System.out.println("for element " + element.getName() + "processing property " + propType.getName() + " isopposed" + propType.isOpposed() + " iscontained" + propType.isContained() +" iscontainer" + propType.isContainer());
+            //System.out.println("for element " + element.getName() + "processing property " + propType.getName() + " isopposed" + propType.isOpposed() + " iscontained" + propType.isContained() +" iscontainer" + propType.isContainer());
 
 
             if (!Filter.shouldProcessProperty(propType)) {
