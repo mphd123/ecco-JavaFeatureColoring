@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterString;
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterV2String;
 
 
 public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
@@ -201,6 +202,9 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                 WorkspaceProperty<Object> property = instance.getOrCreateProperty(pt);
                 // skip empty properties
                 if (property.getRaw() == null) continue;
+
+                // note also would like to properties that are opposed
+                if(pt.isContained()) continue;
                 if (property.getName() != null &&
                         !property.getName().contains("@") &&
                         !property.getName().equals("modifiedBy") &&
@@ -246,6 +250,6 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     @Override
     public String toString() {
-        return generalAdpaterString;
+        return generalAdpaterV2String;
     }
 }

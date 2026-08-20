@@ -15,8 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterString;
-import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpaterString;
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.*;
 
 public class DesignSpaceService extends EccoService {
 
@@ -69,6 +68,8 @@ public class DesignSpaceService extends EccoService {
                 writerMap.put(DesignSpaceInfo.adapterType.JAVA,writer);
             } else if (writer.toString().equals(generalAdpaterString)){
                 writerMap.put(DesignSpaceInfo.adapterType.GENERAL,writer);
+            }else if (writer.toString().equals(generalAdpaterV2String)){
+                writerMap.put(DesignSpaceInfo.adapterType.GeneralV2,writer);
             }
         });
 

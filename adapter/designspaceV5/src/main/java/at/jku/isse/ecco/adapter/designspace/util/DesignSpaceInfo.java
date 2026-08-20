@@ -36,6 +36,7 @@ public record DesignSpaceInfo(Workspace workspace, Folder folder, IdMapper idMap
 
     public enum adapterType {
         GENERAL,
+        GeneralV2,
         JAVA
 
     }
