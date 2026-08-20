@@ -59,7 +59,7 @@ public class PropTypeArtefact implements ArtifactData {
                 handleSingleValue(owningElement, propertyTypeNode.getChildren().get(0), designspaceWriter);
             }  else if (cardinality.equals(Cardinality.MAP)) {
 
-                WorkspacePropertyType propertyType = owningElement.getInstanceOf().getPropertyType(qualifiedName);
+                WorkspacePropertyType propertyType = DesignSpace.getPropertyType(qualifiedName);
                 Map<Key, Node> map = new HashMap<>();
                 for (Node keyNode : propertyTypeNode.getChildren()) {
                     StringArtefact keyArtefact = (StringArtefact) keyNode.getArtifact().getData();

@@ -134,6 +134,15 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
             Node.Op projectNode = handleWorkspaceElement(project);
             pluginNode.addChild(projectNode);
         }
+        Set<WorkspaceElement> remainingElements = new HashSet<>(folder.getWorkspaceElementContents(workspace));
+        remainingElements.remove(processedElements);
+        // other  elements that have not been translated yet
+        for(WorkspaceElement remaining : remainingElements ){
+            Node.Op projectNode = handleWorkspaceElement(remaining);
+            pluginNode.addChild(projectNode);
+        }
+
+
     }
 
 
