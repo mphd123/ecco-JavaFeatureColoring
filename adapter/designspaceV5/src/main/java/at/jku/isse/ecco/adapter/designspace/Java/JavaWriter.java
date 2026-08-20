@@ -30,6 +30,8 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
         return new DesignSpacePlugin().getPluginId();
     }
 
+    public static int processCount = 0;
+
     @Override
     public DesignSpaceInfo[] write(DesignSpaceInfo info, Set<Node> input) {
 
@@ -68,12 +70,15 @@ public class JavaWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
         } finally {
             SingleJavaElement.reset();
             TreeLogger.reset();
+            processCount = 0;
 
         }
 
-
+        System.out.println("writer is done");
         listeners.forEach(listener -> listener.fileWriteEvent(Path.of(checkoutFolder.getQualifiedName()), this));
         return new DesignSpaceInfo[0];
+
+
     }
 
 

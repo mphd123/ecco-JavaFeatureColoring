@@ -17,8 +17,8 @@ public class JavaElement implements JavaArtefact {
     public final String typeName;
 
     public JavaElement(String name, String typeName) {
-        this.name = name;
-        this.typeName = typeName;
+        this.name = name != null ? name.intern() : null;
+        this.typeName = typeName != null ? typeName.intern() : null;
     }
 
     @Override
@@ -37,10 +37,18 @@ public class JavaElement implements JavaArtefact {
     public WorkspaceElement build(Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
+
+        JavaWriter.processCount++;
+        if ( JavaWriter.processCount % 5000 == 0) {
+            long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            System.out.println("writing " +  JavaWriter.processCount + " elements. Heap used: " + (usedMem / 1024 / 1024) + " MB");
+            System.out.println("Currently writing: Element " + name + " (Type: " + typeName + ")");
+        }
+
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
         if (instanceType == null) throw new TypeMangerException("Type not found: " + typeName);
 
-        try (var scope = TreeLogger.enter("JavaElement [" + typeName + "] name: '" + name + "'")) {
+        try (var scope = TreeLogger.enter(() -> "JavaElement [" + typeName + "] name: '" + name + "'")) {
             WorkspaceElement instance = javaWriter.workspace.createWorkspaceElement(instanceType, name, javaWriter.checkoutFolder);
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {

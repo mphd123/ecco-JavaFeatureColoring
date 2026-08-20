@@ -80,9 +80,9 @@ public class PropTypeArtefact implements ArtifactData {
 
         WorkspacePropertyType propertyType = DesignSpace.getPropertyType(qualifiedName);
 
-        if (propertyType.isContained()) { // have to investiaet this for it handeling opposed props
-            return;
-        }
+        //if (propertyType.isContained()) { // have to investiaet this for it handeling opposed props
+        //    return;
+        //}
 
         if (value.getArtifact().getData() instanceof ReferenceArtefact refArtefact) {
             designspaceWriter.fixups.add(new SingleFixUp(owningElement,propertyType,refArtefact));
@@ -105,19 +105,19 @@ public class PropTypeArtefact implements ArtifactData {
 
     private void setMapPropValue(WorkspaceElement instance, WorkspacePropertyType propertyType, Map<Key, Node> artefactMap, DesignspaceWriter designspaceWriter)  {
         if (artefactMap.isEmpty()) return;
-        if (propertyType.isContained()) {
-            return;
-        }
+        //if (propertyType.isContained()) {
+        //    return;
+        //}
         Node example = artefactMap.values().stream().findAny().orElse(null);
 
-        if (example .getArtifact().getData() instanceof ReferenceArtefact refArtefact) {
+        if (example.getArtifact().getData() instanceof ReferenceArtefact refArtefact) {
             Map<Key, ReferenceArtefact> refMap = new HashMap<>();
 
             for (Map.Entry<Key, Node> entry : artefactMap.entrySet()) {
                 refMap.put(entry.getKey(), (ReferenceArtefact) entry.getValue().getArtifact().getData());
             }
             designspaceWriter.fixups.add(new MapFixUp(instance,propertyType,refMap));
-        } else if (example instanceof SimpleValueArtifact<?>) {
+        } else if (example.getArtifact().getData() instanceof SimpleValueArtifact<?>) {
             Map<Key, Object> map = new HashMap<>();
             artefactMap.forEach((key, value) -> {
                 if (value.getArtifact().getData() instanceof SimpleValueArtifact<?> simpleValue) {
@@ -134,9 +134,9 @@ public class PropTypeArtefact implements ArtifactData {
             return;
         }
 
-        if (propertyType.isContained()) {
-            return;
-        }
+        //if (propertyType.isContained()) {
+        //    return;
+        //}
 
 
         Node example = valueNodeCollection.stream().findAny().orElse(null); // they should all be the same artefact
@@ -197,74 +197,4 @@ public class PropTypeArtefact implements ArtifactData {
         } else throw new RuntimeException("unexpected value");
     }
 
-
-    private void setMapProp(at.jku.isse.designspace.core.model.WorkspaceElement instance, WorkspacePropertyType propertyType, List<? extends Node> valueNodeCollection, DesignspaceWriter designspaceWriter) {
-
-        if (valueNodeCollection.isEmpty()) {
-            return;
-        }
-
-
-        Node exampleKey = valueNodeCollection.stream().findAny().orElse(null); // they should all be the same artefact
-        if (exampleKey == null) {
-            System.err.println("collection with no keys");
-            return;
-        }
-        Node example = exampleKey.getChildren().stream().findAny().orElse(null);
-        if (example == null) {
-            System.err.println("null collection in TypeArtefact");
-            return;
-        }
-        if (example.getArtifact().getData() instanceof ReferenceArtefact refArtefact2) {
-            Collection<ReferenceArtefact> collection;
-            if (propertyType.getCardinality().equals(Cardinality.UNORDERED_SET) || propertyType.getCardinality().equals(Cardinality.ORDERED_SET))
-                collection = new OrderedSet<>();
-            else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
-            else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
-
-
-            valueNodeCollection.forEach((value) -> {
-                if (value.getArtifact().getData() instanceof ReferenceArtefact refArtefact) {
-                    collection.add(refArtefact);
-                }
-            });
-
-            designspaceWriter.fixups.add(new CollectionFixUp(instance,propertyType,collection));
-        }
-        else if (example.getArtifact().getData() instanceof WorkspaceElementArtefact) {
-            Collection<at.jku.isse.designspace.core.model.WorkspaceElement> collection;
-            if (propertyType.getCardinality().equals(Cardinality.UNORDERED_SET) || propertyType.getCardinality().equals(Cardinality.ORDERED_SET))
-                collection = new OrderedSet<>();
-            else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
-            else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
-
-
-            valueNodeCollection.forEach((value) -> {
-                if (value.getArtifact().getData() instanceof WorkspaceElementArtefact workspaceElementArtefact) {
-                    try {
-                        collection.add(workspaceElementArtefact.build(value, designspaceWriter));
-                    } catch (NodeWrongArtefact | ExecutionControl.NotImplementedException | TypeMangerException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            });
-            //System.out.println("CollectionProps " + qualifiedName +" for " + instance+" order is for retrieved elements " +Arrays.toString(collection.toArray()) );
-            instance.setAll(propertyType, collection);
-
-
-        } else if (example.getArtifact().getData() instanceof SimpleValueArtifact<?>) {
-            Collection<Object> collection;
-            if (propertyType.getCardinality().equals(Cardinality.UNORDERED_SET) || propertyType.getCardinality().equals(Cardinality.ORDERED_SET))
-                collection = new OrderedSet<>();
-            else if (propertyType.getCardinality().equals(Cardinality.LIST)) collection = new ArrayList<>();
-            else throw new RuntimeException("ListSetArtefact received invalid Cardinality");
-            valueNodeCollection.forEach((value) -> {
-                if (value.getArtifact().getData() instanceof SimpleValueArtifact<?> simpleValueArtifact) {
-                    collection.add(simpleValueArtifact.getValue());
-                }
-            });
-            instance.setAll(propertyType, collection);
-            //System.out.println("CollectionProps " + qualifiedName +" for " + instance+" order is for retrieved elements " +Arrays.toString(collection.toArray()) );
-        } else throw new RuntimeException("unexpected value");
-    }
 }

@@ -58,7 +58,7 @@ public class SingleJavaElement extends JavaElement {
             }
         }
 
-        try (var scope = TreeLogger.enter("SingleJavaElement [" + typeName + "] name: '" + name + "'")) {
+        try (var scope = TreeLogger.enter(() -> "SingleJavaElement [" + typeName + "] name: '" + name + "'")) {
             WorkspaceElement newInstance = javaWriter.workspace.createWorkspaceElement(instanceType, name, javaWriter.checkoutFolder);
 
             if (instanceByName != null) {
@@ -79,7 +79,16 @@ public class SingleJavaElement extends JavaElement {
     public WorkspaceElement build(Node instanceNode, JavaWriter javaWriter)
             throws NodeWrongArtefact, TypeMangerException, ExecutionControl.NotImplementedException {
 
+
+        JavaWriter.processCount++;
+        if ( JavaWriter.processCount % 5000 == 0) {
+            long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            System.out.println("writing " +  JavaWriter.processCount + " elements. Heap used: " + (usedMem / 1024 / 1024) + " MB");
+            System.out.println("Currently writing: SingleElement " + name + " (Type: " + typeName + ")");
+        }
+
         WorkspaceElementType instanceType = DesignSpace.getElementType(typeName);
+
 
         return getSingleOrCreate(instanceType, instanceNode, javaWriter);
     }

@@ -7,6 +7,8 @@ import at.jku.isse.designspace.core.model.WorkspaceElement;
 import at.jku.isse.designspace.core.model.WorkspacePropertyType;
 import at.jku.isse.ecco.adapter.designspace.Java.JavaWriter;
 import at.jku.isse.ecco.adapter.designspace.Java.TreeLogger;
+import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaArtefact;
+import at.jku.isse.ecco.adapter.designspace.Java.artefacts.JavaElement;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.exception.NodeWrongArtefact;
 import at.jku.isse.ecco.adapter.designspace.exception.TypeMangerException;
@@ -23,7 +25,7 @@ public class PropTypeArtefact implements JavaArtefact {
     public final Cardinality cardinality;
 
     public PropTypeArtefact(String qualifiedName, Cardinality cardinality) {
-        this.qualifiedName = qualifiedName;
+        this.qualifiedName = qualifiedName != null ? qualifiedName.intern() : null;
         this.cardinality = cardinality;
     }
 
@@ -43,7 +45,8 @@ public class PropTypeArtefact implements JavaArtefact {
     public void build(Node propertyTypeNode, WorkspaceElement owningElement, JavaWriter javaWriter) {
 
 
-        try (var scope = TreeLogger.enter("Property: " + qualifiedName + " (" + cardinality + ")")) {
+
+        try (var scope = TreeLogger.enter(() -> "Property: " + qualifiedName + " (" + cardinality + ")")) {
 
             if (cardinality.equals(Cardinality.SINGLE)) {
                 if (propertyTypeNode.getChildren().isEmpty()) {

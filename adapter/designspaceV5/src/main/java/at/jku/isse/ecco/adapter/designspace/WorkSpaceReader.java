@@ -204,7 +204,7 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
                 if (property.getRaw() == null) continue;
 
                 // note also would like to properties that are opposed
-                if(pt.isContained()) continue;
+                //if(pt.isContained()) continue;
                 if (property.getName() != null &&
                         !property.getName().contains("@") &&
                         !property.getName().equals("modifiedBy") &&
@@ -250,6 +250,6 @@ public class WorkSpaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node
 
     @Override
     public String toString() {
-        return generalAdpaterV2String;
+        return generalAdpaterString;
     }
 }

@@ -61,6 +61,9 @@ public class DesignSpaceService extends EccoService {
             } else if (reader.toString().equals(generalAdpaterString)){
                 readerMap.put(DesignSpaceInfo.adapterType.GENERAL,reader);
             }
+            else if (reader.toString().equals(generalAdpaterV2String)){
+                readerMap.put(DesignSpaceInfo.adapterType.GeneralV2,reader);
+            }
         });
 
         writers.forEach(writer -> {

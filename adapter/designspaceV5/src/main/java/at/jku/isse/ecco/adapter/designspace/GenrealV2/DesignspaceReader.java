@@ -10,6 +10,7 @@ import at.jku.isse.ecco.adapter.designspace.DesignSpacePlugin;
 import at.jku.isse.ecco.adapter.designspace.GenrealV2.artefacts.ReferenceArtefact;
 import at.jku.isse.ecco.adapter.designspace.GenrealV2.artefacts.WorkspaceElementArtefact;
 import at.jku.isse.ecco.adapter.designspace.GenrealV2.artefacts.PropTypeArtefact;
+import at.jku.isse.ecco.adapter.designspace.Java.Filter;
 import at.jku.isse.ecco.adapter.designspace.artifact.StringArtefact;
 import at.jku.isse.ecco.adapter.designspace.artifact.value.SimpleValueArtifact;
 import at.jku.isse.ecco.adapter.designspace.util.DesignSpaceInfo;
@@ -28,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterV2String;
 import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpaterString;
 
 public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>> {
@@ -38,7 +40,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
     @Inject
     public DesignspaceReader(EntityFactory entityFactory) {
         this.entityFactory = entityFactory;
-        starterTyps.add(Java8.JAVA_PROJECT);
+
     }
 
     @Override
@@ -59,6 +61,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
     public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
 
         processedElements.clear();
+        initStarterTypes();
         info.checkIfInfoValid();
 
         Node.Op pluginNode;
@@ -113,6 +116,10 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
 
 
     public Set<WorkspaceElementType> starterTyps = new HashSet<>();
+    public void initStarterTypes(){
+        starterTyps.clear();
+        starterTyps.add(Java8.JAVA_PROJECT);
+    }
     private  Set<WorkspaceElement> getStarterElements(Workspace workspace,Folder folder) {
         return folder.getWorkspaceElementContents(workspace).stream().filter(workspaceElement -> starterTyps.contains(workspaceElement.getInstanceOf())).collect(Collectors.toSet());
 
@@ -136,14 +143,26 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
             return null;
         }
 
+
+
         if (processedElements.contains(element) ) {
             return entityFactory.createNode(new ReferenceArtefact(element.getName(), element.getInstanceOf().getQualifiedName()));
         }
         Node.Op ElementNode;
         ElementNode = entityFactory.createOrderedNode(new WorkspaceElementArtefact(element.getName(), element.getInstanceOf().getQualifiedName()));
+        processedElements.add(element);
 
         for (WorkspacePropertyType propType : element.getInstanceOf().getAllPropertyTypes()) {
 
+            System.out.println("for element " + element.getName() + "processing property " + propType.getName() + " isopposed" + propType.isOpposed() + " iscontained" + propType.isContained() +" iscontainer" + propType.isContainer());
+
+
+            if (!Filter.shouldProcessProperty(propType)) {
+                continue;
+            }
+
+            if (element.getOrCreateProperty(propType) == null) continue;
+            if (propType.isContained()) continue;
             if (element.getOrCreateProperty(propType).getRaw() == null) continue; // skip empty
 
             Node.Op propTypeNode = entityFactory.createOrderedNode(new PropTypeArtefact(propType.getQualifiedName(), propType.getCardinality()));
@@ -167,6 +186,7 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
             }
             ElementNode.addChild(propTypeNode);
         }
+
         return ElementNode;
     }
 
@@ -275,6 +295,6 @@ public class DesignspaceReader implements ArtifactReader<DesignSpaceInfo, Set<No
 
     @Override
     public String toString() {
-        return javaAdpaterString;
+        return generalAdpaterV2String;
     }
 }

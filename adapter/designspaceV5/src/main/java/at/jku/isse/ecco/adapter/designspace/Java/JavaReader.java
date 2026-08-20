@@ -60,7 +60,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
 
     @Override
     public Set<Node.Op> read(DesignSpaceInfo info, DesignSpaceInfo[] input) {
-
+        processCount = 0;
         processedElements.clear();
         SingleJavaElement.reset();
 
@@ -98,6 +98,8 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         }
 
 
+        System.out.println("java reader finished");
+
         return Set.of(pluginNode);
     }
 
@@ -129,13 +131,21 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         }
     }
 
-
+    private int processCount = 0;
     private Node.Op handleJavaElement(WorkspaceElement element) {
         if (element == null) {
             System.err.println(" during the Read process for java elements one child element is null");
             return null;
 
         }
+
+        processCount++;
+        if (processCount % 5000 == 0) {
+            long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+            System.out.println("Parsed " + processCount + " elements. Heap used: " + (usedMem / 1024 / 1024) + " MB");
+            System.out.println("Currently parsing: " + element.getName() + " (Type: " + element.getInstanceOf().getQualifiedName() + ")");
+        }
+
         boolean isSingle = SingleJavaElement.allSingles.containsKey(element.getInstanceOf());
 
 
@@ -144,7 +154,7 @@ public class JavaReader implements ArtifactReader<DesignSpaceInfo, Set<Node.Op>>
         }
 
 
-        System.out.println("handeling" + element);
+        //System.out.println("handeling" + element);
         Node.Op ElementNode;
         if (SingleJavaElement.allSingles.containsKey(element.getInstanceOf())) {
             ElementNode = entityFactory.createOrderedNode(new SingleJavaElement(element.getName(), element.getInstanceOf().getQualifiedName()));

@@ -42,6 +42,7 @@ public class WorkspaceElementArtefact implements ArtifactData {
 
         try (var scope = TreeLogger.enter("WorkspaceElement [" + typeName + "] name: '" + name + "'")) {
             at.jku.isse.designspace.core.model.WorkspaceElement instance = designspaceWriter.workspace.createWorkspaceElement(instanceType, name, designspaceWriter.checkoutFolder);
+            designspaceWriter.createdElements.add(instance);
 
             for (Node propertyTypeNode : instanceNode.getChildren()) {
                 if (propertyTypeNode.getArtifact().getData() instanceof PropTypeArtefact propTypeArtefact) {

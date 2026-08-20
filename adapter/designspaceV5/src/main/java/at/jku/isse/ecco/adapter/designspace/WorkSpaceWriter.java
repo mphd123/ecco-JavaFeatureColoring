@@ -91,7 +91,7 @@ public class WorkSpaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInf
 
     @Override
     public String toString() {
-        return generalAdpaterV2String;
+        return generalAdpaterString;
     }
 
 }

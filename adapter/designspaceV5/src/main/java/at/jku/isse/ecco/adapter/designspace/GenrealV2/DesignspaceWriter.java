@@ -14,11 +14,9 @@ import at.jku.isse.ecco.service.listener.WriteListener;
 import at.jku.isse.ecco.tree.Node;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.generalAdpaterV2String;
 import static at.jku.isse.ecco.adapter.designspace.DesignSpaceModule.javaAdpaterString;
 
 public class DesignspaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceInfo> {
@@ -27,9 +25,9 @@ public class DesignspaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceI
     public Folder checkoutFolder;
     public WriterTypeManager writerTypeManager;
 
-    public Set<RefFixUpInterFace> fixups;
+    public Set<RefFixUpInterFace> fixups = new HashSet<>();
 
-    public Set< WorkspaceElement> createdElements;
+    public Set< WorkspaceElement> createdElements = new HashSet<>();
 
     @Override
     public String getPluginId() {
@@ -104,7 +102,7 @@ public class DesignspaceWriter implements ArtifactWriter<Set<Node>, DesignSpaceI
 
     @Override
     public String toString() {
-        return javaAdpaterString;
+        return generalAdpaterV2String;
     }
 
 }
